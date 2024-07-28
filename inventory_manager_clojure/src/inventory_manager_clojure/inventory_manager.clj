@@ -3,17 +3,17 @@
   (:gen-class))
 
 (defn create-inventory-manager [initial-inventory threshold]
-  (let [inventory-chan (atom initial-inventory)
+  (let [inventory-atom (atom initial-inventory)
         changes-chan (async/chan (async/sliding-buffer 60))
         restock-chan (async/chan)]
 
     (async/go-loop []
-      (when (< @inventory-chan threshold)
+      (when (< @inventory-atom threshold)
         (async/>! restock-chan :trigger-restock))
       (async/<! (async/timeout 1000))
       (recur))
 
-    {:inventory inventory-chan
+    {:inventory inventory-atom
      :changes changes-chan
      :restock restock-chan}))
 
