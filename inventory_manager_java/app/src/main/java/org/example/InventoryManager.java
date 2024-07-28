@@ -45,11 +45,23 @@ public class InventoryManager {
       changesQueue.offer(-1);
       return true;
     }
+
+    // Not thread-safe
+//    if (inventory.get() > 0) {
+//      inventory.decrementAndGet();
+//      changesQueue.offer(-1);
+//      return true;
+//    }
+
     return false;
   }
 
   public void removeFromCart() {
     inventory.incrementAndGet();
+
+    // Not thread-safe
+//    inventory.set(inventory.get() + 1);
+
     changesQueue.offer(1);
   }
 
