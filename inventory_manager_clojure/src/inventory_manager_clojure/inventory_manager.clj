@@ -59,17 +59,14 @@
     (start-analytics manager)
     (start-restock-monitor manager)
 
-    ; Simulate multiple users
     (dotimes [_ 9]
       (async/go (simulate-user manager :reader))
       (async/go (simulate-user manager :buyer)))
 
-    ; Wait for a while to let operations complete
     (Thread/sleep 5000)
 
     (println "Final inventory:" @(:inventory manager))
 
-    ; 确保所有的 go 块有机会完成
     (System/exit 0)))
 
 ; Run the main function

@@ -113,7 +113,6 @@ public class InventoryManager {
     userSimulator.shutdown();
     userSimulator.awaitTermination(5, TimeUnit.SECONDS);
 
-    // 增加等待时间，给补货流程更多执行机会
     Thread.sleep(3000);
 
     System.out.println("Final inventory: " + manager.inventory.get());
