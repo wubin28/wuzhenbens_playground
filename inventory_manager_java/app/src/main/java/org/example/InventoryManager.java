@@ -8,11 +8,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class InventoryManager {
-  private final AtomicInteger inventory;
+  final AtomicInteger inventory;
   private final BlockingQueue<Integer> changesQueue;
   private final BlockingQueue<Boolean> restockQueue;
   private final int threshold;
-  private final ExecutorService executorService;
+  final ExecutorService executorService;
 
   public InventoryManager(int initialInventory, int threshold) {
     this.inventory = new AtomicInteger(initialInventory);
