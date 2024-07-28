@@ -11,7 +11,10 @@
                      defprotocol [[:inner 0]]}
            :remove-consecutive-blank-lines? true
            :remove-trailing-whitespace? true}
-  :main inventory_manager_clojure.inventory-manager
+  ; :main inventory_manager_clojure.inventory-manager
+  :test-selectors {:default (complement :integration)
+                   :integration :integration
+                   :all (constantly true)}
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}})

@@ -19,10 +19,12 @@
 
 (defn add-to-cart [manager]
   (let [current @(:inventory manager)]
-    (when (pos? current)
-      (swap! (:inventory manager) dec)
-      (async/>!! (:changes manager) -1)
-      true)))
+    (if (pos? current)
+      (do
+        (swap! (:inventory manager) dec)
+        (async/>!! (:changes manager) -1)
+        true)
+      false)))  ; 明确返回 false 而不是 nil
 
 (defn remove-from-cart [manager]
   (swap! (:inventory manager) inc)
@@ -71,7 +73,7 @@
     (System/exit 0)))
 
 ; Run the main function
-(-main)
+; (-main)
 ; Output:
 ;Current inventory: Current inventory:   Current inventory:  1010
 ;
