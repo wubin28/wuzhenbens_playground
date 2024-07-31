@@ -44,16 +44,16 @@
     true))
 
 (defn pay-for-booking [{:keys [bookings]} seat-number]
-  (let [result (atom false)]
+  (let [payment-successful (atom false)]
     (swap! bookings (fn [bs]
                       (map (fn [b]
                              (if (and (= (:seat-number b) seat-number)
                                       (not (:paid? b)))
-                               (do (reset! result true)
+                               (do (reset! payment-successful true)
                                    (assoc b :paid? true))
                                b))
                            bs)))
-    @result))
+    @payment-successful))
 
 (def print-lock (Object.))
 
