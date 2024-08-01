@@ -47,7 +47,7 @@
 (defn pay-for-booking [{:keys [bookings]} seat-number]
   (let [payment-successful (atom false)]
     (swap! bookings (fn [bs]
-                      (map (fn [b]
+                      (mapv (fn [b]
                              (if (and (= (:seat-number b) seat-number)
                                       (not (:paid? b)))
                                (do (reset! payment-successful true)
