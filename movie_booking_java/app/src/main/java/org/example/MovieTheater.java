@@ -10,6 +10,9 @@ public class MovieTheater {
   private final int totalSeats;
   private List<Boolean> seats;
   private Lock lock = new ReentrantLock();
+  private FakeDatabase fakeDatabase;
+  private FakeFileSystem fileSystem;
+  private FakeExternalService externalService;
 
   public MovieTheater(int totalSeats) {
     this.totalSeats = totalSeats;
@@ -17,20 +20,26 @@ public class MovieTheater {
     for (int i = 0; i < totalSeats; i++) {
       seats.add(false);
     }
+    this.fakeDatabase = new FakeDatabase();
+  }
+
+  public List<Boolean> getSeats() {
+    return seats; // 失误1：直接返回内部状态
   }
 
   public List<Integer> getAvailableSeats() {
     List<Integer> availableSeats = new ArrayList<>();
-    lock.lock();
-    try {
+    // 失误2：忘记加锁
+    // lock.lock();
+    // try {
       for (int i = 0; i < totalSeats; i++) {
         if (!seats.get(i)) {
           availableSeats.add(i + 1);
         }
       }
-    } finally {
-      lock.unlock();
-    }
+    // } finally {
+      // lock.unlock();
+    // }
     return availableSeats;
   }
 
@@ -65,6 +74,24 @@ public class MovieTheater {
       lock.unlock();
     }
   }
+
+  public void riskyMethod() {
+    lock.lock();
+    try {
+      // 失误3: 在锁内部调用可能长时间阻塞的操作（经常有副作用）
+      String newData = "new data";
+      fakeDatabase.updateLargeDataSet(newData);
+      // 或
+      String extensiveLogData = "extensive log data";
+      fileSystem.writeToLog(extensiveLogData);
+      // 或
+      String transactionData = "transaction data";
+      externalService.processComplexTransaction(transactionData);
+    } finally {
+      lock.unlock();
+    }
+  }
+
 
   public static void main(String[] args) {
     BookingSystem bookingSystem = new BookingSystem(10); // 创建一个有10个座位的影院
@@ -114,11 +141,30 @@ public class MovieTheater {
       new Thread(userTask, "用户" + (i + 1)).start();
     }
   }
+
+}
+
+class FakeDatabase {
+  public void updateLargeDataSet(String data) {
+
+  }
+}
+
+class FakeFileSystem {
+  public void writeToLog(String data) {
+
+  }
+}
+
+class FakeExternalService {
+  public void processComplexTransaction(String data) {
+
+  }
 }
 
 class Booking {
   private int seatNumber;
-  private boolean isPaid = false;
+  public boolean isPaid = false; // 失误4：公开可变字段
 
   public Booking(int seatNumber) {
     this.seatNumber = seatNumber;
@@ -148,12 +194,13 @@ class BookingSystem {
 
   public boolean makeBooking(int seatNumber) {
     if (theater.bookSeat(seatNumber)) {
-      bookingLock.lock();
-      try {
+      // 失误5: 忘记加锁且在锁外部修改共享资源
+      // bookingLock.lock();
+      // try {
         bookings.add(new Booking(seatNumber));
-      } finally {
-        bookingLock.unlock();
-      }
+      // } finally {
+      // bookingLock.unlock();
+      // }
       return true;
     }
     return false;
