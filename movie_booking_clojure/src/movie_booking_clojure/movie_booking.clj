@@ -5,11 +5,23 @@
   (atom (vec (repeat total-seats false))))
 
 (defn get-available-seats [theater]
+  ;; 失误1：直接返回内部状态
+  ;; Clojure 中难以重现，因为：
+  ;; 1. @theater 返回的是不可变的 vector 的副本
+  ;; 2. 函数返回的是新创建的 sequence，而不是直接暴露内部状态
+  ;; 失误2：忘记加锁
+  ;; Clojure 中难以重现，因为：
+  ;; 1. 使用了不可变数据结构，不需要显式加锁
+  ;; 2. 读取操作 (@theater) 是原子的，不会出现不一致状态
   (->> @theater
        (map-indexed (fn [idx seat] (when-not seat (inc idx))))
        (remove nil?)))
 
 (defn book-seat [theater seat-number]
+  ;; 失误3：在锁内部调用可能长时间阻塞的操作
+  ;; Clojure 中难以重现，因为：
+  ;; 1. 使用了 compare-and-set! 进行原子操作，不需要显式加锁
+  ;; 2. 函数式编程鼓励将副作用分离，减少了在关键部分执行长时间操作的可能性
   (let [idx (dec seat-number)]
     (when (< -1 idx (count @theater))
       (loop []
@@ -27,6 +39,10 @@
       true)))
 
 (defrecord Booking [seat-number paid?])
+;; 失误4：公开可变字段
+;; Clojure 中难以重现，因为：
+;; 1. Clojure 的 record 是不可变的数据结构
+;; 2. 修改 Booking 实例需要创建新的实例，而不是直接修改字段
 
 (defn create-booking-system [total-seats]
   (let [theater (create-movie-theater total-seats)]
@@ -34,6 +50,10 @@
      :bookings (atom [])}))
 
 (defn make-booking [{:keys [theater bookings]} seat-number]
+  ;; 失误5：忘记加锁且在锁外部修改共享资源
+  ;; Clojure 中难以重现，因为：
+  ;; 1. 使用 swap! 进行原子操作，确保了线程安全
+  ;; 2. 不可变数据结构和函数式更新消除了显式锁的需求
   (when (book-seat theater seat-number)
     (swap! bookings conj (->Booking seat-number false))
     true))
