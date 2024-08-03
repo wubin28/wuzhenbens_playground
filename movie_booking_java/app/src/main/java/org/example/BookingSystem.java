@@ -98,55 +98,6 @@ public class BookingSystem {
     this.theater = new MovieTheater(totalSeats);
   }
 
-  public static void main(String[] args) {
-    BookingSystem bookingSystem = new BookingSystem(10); // 创建一个有10个座位的影院
-    Random random = new Random();
-
-    Runnable userTask =
-        () -> {
-          String userName = Thread.currentThread().getName();
-          try {
-            // 查看可用座位
-            List<Integer> availableSeats = bookingSystem.getAvailableSeats();
-            System.out.println(userName + " 查看可用座位: " + availableSeats);
-
-            if (!availableSeats.isEmpty()) {
-              // 随机选择一个座位进行预订
-              int seatToBook = availableSeats.get(random.nextInt(availableSeats.size()));
-              boolean booked = bookingSystem.makeBooking(seatToBook);
-              System.out.println(
-                  userName + " 尝试预订座位 " + seatToBook + ": " + (booked ? "成功" : "失败"));
-
-              if (booked) {
-                // 50%的概率支付订单
-                if (random.nextBoolean()) {
-                  boolean paid = bookingSystem.payForBooking(seatToBook);
-                  System.out.println(
-                      userName + " 尝试支付座位 " + seatToBook + ": " + (paid ? "成功" : "失败"));
-                } else {
-                  // 50%的概率取消预订
-                  boolean cancelled = bookingSystem.cancelBooking(seatToBook);
-                  System.out.println(
-                      userName + " 尝试取消预订座位 " + seatToBook + ": " + (cancelled ? "成功" : "失败"));
-                }
-              }
-            }
-
-            // 再次查看可用座位
-            availableSeats = bookingSystem.getAvailableSeats();
-            System.out.println(userName + " 再次查看可用座位: " + availableSeats);
-
-          } catch (Exception e) {
-            System.out.println(userName + " 遇到错误: " + e.getMessage());
-          }
-        };
-
-    // 创建5个线程模拟5个并发用户
-    for (int i = 0; i < 5; i++) {
-      new Thread(userTask, "用户" + (i + 1)).start();
-    }
-  }
-
   public boolean makeBooking(int seatNumber) {
     if (theater.bookSeat(seatNumber)) {
       bookingLock.lock();
@@ -190,6 +141,55 @@ public class BookingSystem {
 
   public List<Integer> getAvailableSeats() {
     return theater.getAvailableSeats();
+  }
+
+  public static void main(String[] args) {
+    BookingSystem bookingSystem = new BookingSystem(10); // 创建一个有10个座位的影院
+    Random random = new Random();
+
+    Runnable userTask =
+            () -> {
+              String userName = Thread.currentThread().getName();
+              try {
+                // 查看可用座位
+                List<Integer> availableSeats = bookingSystem.getAvailableSeats();
+                System.out.println(userName + " 查看可用座位: " + availableSeats);
+
+                if (!availableSeats.isEmpty()) {
+                  // 随机选择一个座位进行预订
+                  int seatToBook = availableSeats.get(random.nextInt(availableSeats.size()));
+                  boolean booked = bookingSystem.makeBooking(seatToBook);
+                  System.out.println(
+                          userName + " 尝试预订座位 " + seatToBook + ": " + (booked ? "成功" : "失败"));
+
+                  if (booked) {
+                    // 50%的概率支付订单
+                    if (random.nextBoolean()) {
+                      boolean paid = bookingSystem.payForBooking(seatToBook);
+                      System.out.println(
+                              userName + " 尝试支付座位 " + seatToBook + ": " + (paid ? "成功" : "失败"));
+                    } else {
+                      // 50%的概率取消预订
+                      boolean cancelled = bookingSystem.cancelBooking(seatToBook);
+                      System.out.println(
+                              userName + " 尝试取消预订座位 " + seatToBook + ": " + (cancelled ? "成功" : "失败"));
+                    }
+                  }
+                }
+
+                // 再次查看可用座位
+                availableSeats = bookingSystem.getAvailableSeats();
+                System.out.println(userName + " 再次查看可用座位: " + availableSeats);
+
+              } catch (Exception e) {
+                System.out.println(userName + " 遇到错误: " + e.getMessage());
+              }
+            };
+
+    // 创建5个线程模拟5个并发用户
+    for (int i = 0; i < 5; i++) {
+      new Thread(userTask, "用户" + (i + 1)).start();
+    }
   }
 }
 // Output:
