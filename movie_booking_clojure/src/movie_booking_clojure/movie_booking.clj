@@ -1,7 +1,7 @@
 (ns movie-booking-clojure.movie-booking
   (:require [clojure.core.async :as async]))
 
-(defn create-movie-theater [total-seats]
+(defn create-movie-theater! [total-seats]
   (atom (vec (repeat total-seats false))))
 
 (defn get-available-seats [theater]
@@ -9,7 +9,7 @@
        (map-indexed (fn [idx seat] (when-not seat (inc idx))))
        (remove nil?)))
 
-(defn book-seat [theater seat-number]
+(defn book-seat! [theater seat-number]
   (let [idx (dec seat-number)]
     (when (< -1 idx (count @theater))
       (loop []
@@ -20,7 +20,7 @@
               true  ; 预订成功
               (recur))))))))  ; 重试
 
-(defn cancel-booking [theater seat-number]
+(defn cancel-booking! [theater seat-number]
   (let [idx (dec seat-number)]
     (when (< -1 idx (count @theater))
       (reset! theater (assoc @theater idx false))
@@ -28,23 +28,23 @@
 
 (defrecord Booking [seat-number paid?])
 
-(defn create-booking-system [total-seats]
-  (let [theater (create-movie-theater total-seats)]
+(defn create-booking-system! [total-seats]
+  (let [theater (create-movie-theater! total-seats)]
     {:theater theater
      :bookings (atom [])}))
 
 (defn make-booking! [{:keys [theater bookings]} seat-number]
-  (when (book-seat theater seat-number)
+  (when (book-seat! theater seat-number)
     (swap! bookings conj (->Booking seat-number false))
     true))
 
-(defn cancel-booking-system [{:keys [theater bookings]} seat-number]
-  (when (cancel-booking theater seat-number)
+(defn cancel-booking-system! [{:keys [theater bookings]} seat-number]
+  (when (cancel-booking! theater seat-number)
     (swap! bookings (fn [bs] (remove #(and (= (:seat-number %) seat-number)
                                            (not (:paid? %))) bs)))
     true))
 
-(defn pay-for-booking [{:keys [bookings]} seat-number]
+(defn pay-for-booking! [{:keys [bookings]} seat-number]
   (let [payment-successful (atom false)]
     (swap! bookings (fn [bs]
                       (mapv (fn [b]
@@ -58,7 +58,7 @@
 
 (def print-lock (Object.))
 
-(defn safe-println [& args]
+(defn safe-println! [& args]
   (locking print-lock
     (apply println args)
     (flush)))
@@ -67,27 +67,27 @@
   (async/go
     (try
       (let [available-seats (get-available-seats (:theater booking-system))]
-        (safe-println user-name "查看可用座位:" available-seats)
+        (safe-println! user-name "查看可用座位:" available-seats)
 
         (when (seq available-seats)
           (let [seat-to-book (rand-nth available-seats)
                 booked (make-booking! booking-system seat-to-book)]
-            (safe-println user-name "尝试预订座位" seat-to-book ":" (if booked "成功" "失败"))
+            (safe-println! user-name "尝试预订座位" seat-to-book ":" (if booked "成功" "失败"))
 
             (when booked
               (if (< (rand) 0.5)
-                (let [paid (pay-for-booking booking-system seat-to-book)]
-                  (safe-println user-name "尝试支付座位" seat-to-book ":" (if paid "成功" "失败")))
-                (let [cancelled (cancel-booking-system booking-system seat-to-book)]
-                  (safe-println user-name "尝试取消预订座位" seat-to-book ":" (if cancelled "成功" "失败")))))))
+                (let [paid (pay-for-booking! booking-system seat-to-book)]
+                  (safe-println! user-name "尝试支付座位" seat-to-book ":" (if paid "成功" "失败")))
+                (let [cancelled (cancel-booking-system! booking-system seat-to-book)]
+                  (safe-println! user-name "尝试取消预订座位" seat-to-book ":" (if cancelled "成功" "失败")))))))
 
         (let [available-seats (get-available-seats (:theater booking-system))]
-          (safe-println user-name "再次查看可用座位:" available-seats)))
+          (safe-println! user-name "再次查看可用座位:" available-seats)))
       (catch Exception e
-        (safe-println user-name "遇到错误:" (.getMessage e))))))
+        (safe-println! user-name "遇到错误:" (.getMessage e))))))
 
 (defn -main []
-  (let [booking-system (create-booking-system 10)]
+  (let [booking-system (create-booking-system! 10)]
     (doall (for [i (range 5)]
              (simulate-user! booking-system (str "用户" (inc i)))))
     (Thread/sleep 5000)))
