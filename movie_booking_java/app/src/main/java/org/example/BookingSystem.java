@@ -6,7 +6,7 @@ import java.util.Random;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class MovieTheater {
+class MovieTheater {
   private final int totalSeats;
   private List<Boolean> seats;
   private Lock lock = new ReentrantLock();
@@ -66,6 +66,38 @@ public class MovieTheater {
     }
   }
 
+}
+
+class Booking {
+  private int seatNumber;
+  private boolean isPaid = false;
+
+  public Booking(int seatNumber) {
+    this.seatNumber = seatNumber;
+  }
+
+  public void pay() {
+    isPaid = true;
+  }
+
+  public boolean isPaid() {
+    return isPaid;
+  }
+
+  public int getSeatNumber() {
+    return seatNumber;
+  }
+}
+
+public class BookingSystem {
+  private MovieTheater theater;
+  private List<Booking> bookings = new ArrayList<>();
+  private Lock bookingLock = new ReentrantLock();
+
+  public BookingSystem(int totalSeats) {
+    this.theater = new MovieTheater(totalSeats);
+  }
+
   public static void main(String[] args) {
     BookingSystem bookingSystem = new BookingSystem(10); // 创建一个有10个座位的影院
     Random random = new Random();
@@ -113,37 +145,6 @@ public class MovieTheater {
     for (int i = 0; i < 5; i++) {
       new Thread(userTask, "用户" + (i + 1)).start();
     }
-  }
-}
-
-class Booking {
-  private int seatNumber;
-  private boolean isPaid = false;
-
-  public Booking(int seatNumber) {
-    this.seatNumber = seatNumber;
-  }
-
-  public void pay() {
-    isPaid = true;
-  }
-
-  public boolean isPaid() {
-    return isPaid;
-  }
-
-  public int getSeatNumber() {
-    return seatNumber;
-  }
-}
-
-class BookingSystem {
-  private MovieTheater theater;
-  private List<Booking> bookings = new ArrayList<>();
-  private Lock bookingLock = new ReentrantLock();
-
-  public BookingSystem(int totalSeats) {
-    this.theater = new MovieTheater(totalSeats);
   }
 
   public boolean makeBooking(int seatNumber) {
