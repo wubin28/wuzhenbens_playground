@@ -65,7 +65,6 @@ class MovieTheater {
       lock.unlock();
     }
   }
-
 }
 
 class Booking {
