@@ -63,7 +63,7 @@
     (apply println args)
     (flush)))
 
-(defn simulate-user [booking-system user-name]
+(defn simulate-user! [booking-system user-name]
   (async/go
     (try
       (let [available-seats (get-available-seats (:theater booking-system))]
@@ -89,7 +89,7 @@
 (defn -main []
   (let [booking-system (create-booking-system 10)]
     (doall (for [i (range 5)]
-             (simulate-user booking-system (str "用户" (inc i)))))
+             (simulate-user! booking-system (str "用户" (inc i)))))
     (Thread/sleep 5000)))
 ; Output:
 ;用户5 查看可用座位: (1 2 3 4 5 6 7 8 9 10)
