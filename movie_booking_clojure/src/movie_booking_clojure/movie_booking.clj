@@ -33,7 +33,7 @@
     {:theater theater
      :bookings (atom [])}))
 
-(defn make-booking [{:keys [theater bookings]} seat-number]
+(defn make-booking! [{:keys [theater bookings]} seat-number]
   (when (book-seat theater seat-number)
     (swap! bookings conj (->Booking seat-number false))
     true))
@@ -71,7 +71,7 @@
 
         (when (seq available-seats)
           (let [seat-to-book (rand-nth available-seats)
-                booked (make-booking booking-system seat-to-book)]
+                booked (make-booking! booking-system seat-to-book)]
             (safe-println user-name "尝试预订座位" seat-to-book ":" (if booked "成功" "失败"))
 
             (when booked

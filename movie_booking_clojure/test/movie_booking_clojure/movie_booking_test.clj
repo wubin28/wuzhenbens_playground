@@ -67,27 +67,27 @@
 (deftest make-booking-test
   (testing "预订可用座位"
     (let [booking-system (create-booking-system 3)]
-      (is (make-booking booking-system 2))
+      (is (make-booking! booking-system 2))
       (is (= 1 (count @(:bookings booking-system))))
       (is (= 2 (:seat-number (first @(:bookings booking-system)))))
       (is (not (:paid? (first @(:bookings booking-system)))))))
 
   (testing "预订已被预订的座位"
     (let [booking-system (create-booking-system 3)]
-      (make-booking booking-system 2)
-      (is (not (make-booking booking-system 2))))))
+      (make-booking! booking-system 2)
+      (is (not (make-booking! booking-system 2))))))
 
 ;; 测试取消预订
 (deftest cancel-booking-system-test
   (testing "取消未支付的预订"
     (let [booking-system (create-booking-system 3)]
-      (make-booking booking-system 2)
+      (make-booking! booking-system 2)
       (is (cancel-booking-system booking-system 2))
       (is (empty? @(:bookings booking-system)))))
 
   (testing "取消已支付的预订"
     (let [booking-system (create-booking-system 3)]
-      (make-booking booking-system 2)
+      (make-booking! booking-system 2)
       (pay-for-booking booking-system 2)
       (is (cancel-booking-system booking-system 2))
       (is (= 1 (count @(:bookings booking-system)))))))
@@ -96,13 +96,13 @@
 (deftest pay-for-booking-test
   (testing "支付未支付的预订"
     (let [booking-system (create-booking-system 3)]
-      (make-booking booking-system 2)
+      (make-booking! booking-system 2)
       (is (pay-for-booking booking-system 2))
       (is (:paid? (first @(:bookings booking-system))))))
 
   (testing "支付已支付的预订"
     (let [booking-system (create-booking-system 3)]
-      (make-booking booking-system 2)
+      (make-booking! booking-system 2)
       (pay-for-booking booking-system 2)
       (is (not (pay-for-booking booking-system 2)))))
 
