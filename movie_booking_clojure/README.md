@@ -22,13 +22,19 @@ graph TD
             E{seq available-seats}
             subgraph F [make-booking!]
                 F0["make-booking!\nMakes a booking in the booking system, updating both theater and bookings\nInput: **booking-system (map)**;\nseat-number (integer): The seat number to book (1-indexed)\nOutput: booked (boolean): true if booking is successful, false if unsuccessful"]
+                F1["book-seat!\nAttempts to book a specific seat in the theater\nInput: **theater (atom)**\nseat-number (integer): The seat number to book (1-indexed)\nOutput: boolean: true if booking is successful, false if the seat is already booked or invalid"]
                 M["Booking Record\nDefines a record type with fields:\n- seat-number: integer\n- paid?: boolean"]
+                F0 --> F1
                 F0 --> M
             end
             G{booked}
             H("(< (rand) 0.5)")
             I("pay-for-booking!\nMarks a booking as paid in the booking system\nInput: **booking-system (map)**\nseat-number (integer): The seat number to pay for (1-indexed)\nOutput: paid (boolean): true if payment is successful, false if the booking is not found or already paid")
-            J("cancel-booking-system!\nCancels a booking in the booking system and updates both theater and bookings\nInput: **booking-system (map)**\nseat-number (integer): The seat number to cancel (1-indexed)\nOutput: cancelled (boolean): true if cancellation is successful, false if unsuccessful")
+            subgraph J [cancel-booking-system!]
+                J0("cancel-booking-system!\nCancels a booking in the booking system and updates both theater and bookings\nInput: **booking-system (map)**\nseat-number (integer): The seat number to cancel (1-indexed)\nOutput: cancelled (boolean): true if cancellation is successful, false if unsuccessful")
+                J1("cancel-booking!\nCancels a booking for a specific seat in the theater\nInput: **theater (atom)**\nseat-number (integer): The seat number to cancel (1-indexed)\nOutput: boolean: true if cancellation is successful, nil if the seat number is invalid")
+                J0 --> J1
+            end
             K["get-available-seats\nRetrieves a list of available seat numbers in the theater\nInput: **theater (atom)**: An atom containing a vector of boolean values representing seat availability\nOutput: available-seats (vector): A vector of integers representing available seat numbers (1-indexed)"]
             L["Error Handling\nCatches and logs any exceptions that occur during user simulation"]
 
