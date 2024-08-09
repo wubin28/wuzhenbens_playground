@@ -1,6 +1,5 @@
-#include <algorithm>  // 新增：用于 std::transform
-#include <cctype>  // 新增：用于 std::ispunct 和 std::tolower
-#include <cstddef>
+#include <algorithm>
+#include <cctype>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -57,7 +56,6 @@ constexpr std::size_t BUFFER_SIZE = 8192;  // 8 KB buffer
 }
 }  // namespace
 
-// 新增：处理单词的辅助函数
 inline std::string processWord(const std::string& word)
 {
   std::string processed = word;
