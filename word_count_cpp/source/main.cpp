@@ -27,6 +27,12 @@ constexpr std::size_t BUFFER_SIZE = 8192;  // 8 KB buffer
   std::string buffer;
   buffer.reserve(BUFFER_SIZE);
 
+  // 场景1：内存泄漏
+  // 注意：这里故意创建了一个内存泄漏
+  char* large_buffer = new char[1000000];
+  // 使用 large_buffer 进行一些操作
+  // 忘记释放 large_buffer，导致内存泄漏
+
   while (file) {
     char ch;
     file.read(&ch, 1);
@@ -71,6 +77,17 @@ inline std::string processWord(const std::string& word)
                  processed.end(),
                  processed.begin(),
                  [](unsigned char c) { return std::tolower(c); });
+
+  // 场景2：使用已释放的内存（悬垂指针）
+  // 注意：这段代码被注释掉了，因为它会导致未定义行为
+  /*
+  char* temp = new char[processed.length() + 1];
+  strcpy(temp, processed.c_str());
+  delete[] temp;
+  // 在这里，temp 是一个悬垂指针
+  std::cout << temp; // 使用已释放的内存，导致未定义行为
+  */
+
   return processed;
 }
 
@@ -88,6 +105,14 @@ inline std::string processWord(const std::string& word)
       }
     }
   }
+
+  // 场景4：未初始化的指针（野指针）
+  // 注意：这段代码被注释掉了，因为它会导致未定义行为
+  /*
+  int* uninitializedPtr;
+  *uninitializedPtr = 42; // 使用未初始化的指针，导致未定义行为
+  */
+
   return wordCount;
 }
 
@@ -100,6 +125,15 @@ inline void writeResults(
     throw std::runtime_error("Unable to open output file: "
                              + outputPath.string());
   }
+
+  // 场景3：双重释放
+  // 注意：这段代码被注释掉了，因为它会导致未定义行为
+  /*
+  int* ptr = new int(10);
+  delete ptr;
+  // 一些其他操作
+  delete ptr; // 双重释放，导致未定义行为
+  */
 
   for (const auto& [word, count] : wordCount) {
     outFile << word << ": " << count << '\n';
