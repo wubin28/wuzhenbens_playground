@@ -1,0 +1,4 @@
+The quick brown fox jumps over the lazy dog.
+The lazy dog sleeps all day.
+The quick brown fox is very clever.
+All work and no play makes Jack a dull boy.
