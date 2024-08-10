@@ -26,30 +26,12 @@ impl std::fmt::Display for WordCountError {
 
 impl std::error::Error for WordCountError {}
 
-/// Reads lines from a file.
-///
-/// # Arguments
-///
-/// * `file_path` - The path to the file to read
-///
-/// # Returns
-///
-/// A vector of strings, each representing a line in the file
 fn read_file_lines(file_path: &Path) -> Result<Vec<String>, WordCountError> {
     let file = File::open(file_path)?;
     let reader = BufReader::with_capacity(BUFFER_SIZE, file);
     reader.lines().collect::<Result<_, _>>().map_err(Into::into)
 }
 
-/// Processes a word by removing punctuation and converting to lowercase.
-///
-/// # Arguments
-///
-/// * `word` - The word to process
-///
-/// # Returns
-///
-/// The processed word
 fn process_word(word: &str) -> String {
     word.chars()
         .filter(|&c| !c.is_ascii_punctuation())
@@ -57,15 +39,6 @@ fn process_word(word: &str) -> String {
         .collect()
 }
 
-/// Counts words in the given lines.
-///
-/// # Arguments
-///
-/// * `lines` - A slice of strings, each representing a line of text
-///
-/// # Returns
-///
-/// A HashMap with words as keys and their counts as values
 fn count_words(lines: &[String]) -> HashMap<String, usize> {
     lines
         .iter()
@@ -78,16 +51,6 @@ fn count_words(lines: &[String]) -> HashMap<String, usize> {
         })
 }
 
-/// Writes the word count results to a file.
-///
-/// # Arguments
-///
-/// * `output_path` - The path to the output file
-/// * `word_count` - A HashMap containing words and their counts
-///
-/// # Returns
-///
-/// Result indicating success or failure
 fn write_results(
     output_path: &Path,
     word_count: &HashMap<String, usize>,
@@ -102,16 +65,6 @@ fn write_results(
     Ok(())
 }
 
-/// Processes a file by counting words and writing results.
-///
-/// # Arguments
-///
-/// * `input_file` - The path to the input file
-/// * `output_file` - The path to the output file
-///
-/// # Returns
-///
-/// Result indicating success or failure
 fn process_file(input_file: &str, output_file: &str) -> Result<(), WordCountError> {
     let input_path = Path::new(input_file);
     let output_path = Path::new(output_file);
@@ -156,3 +109,33 @@ mod tests {
         assert_eq!(word_count.get("rust"), Some(&1));
     }
 }
+// input.txt
+// The quick brown fox jumps over the lazy dog.
+// The lazy dog sleeps all day.
+// The quick brown fox is very clever.
+// All work and no play makes Jack a dull boy.
+//
+// output.txt
+// clever: 1
+// and: 1
+// play: 1
+// work: 1
+// jack: 1
+// the: 4
+// jumps: 1
+// is: 1
+// very: 1
+// brown: 2
+// over: 1
+// day: 1
+// makes: 1
+// fox: 2
+// dog: 2
+// all: 2
+// quick: 2
+// lazy: 2
+// a: 1
+// boy: 1
+// sleeps: 1
+// dull: 1
+// no: 1
