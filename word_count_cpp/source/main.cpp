@@ -136,3 +136,33 @@ int main()
     return 0;
   }
 }
+// input.txt
+// The quick brown fox jumps over the lazy dog.
+// The lazy dog sleeps all day.
+// The quick brown fox is very clever.
+// All work and no play makes Jack a dull boy.
+//
+// output.txt
+// dull: 1
+// jack: 1
+// boy: 1
+// makes: 1
+// play: 1
+// no: 1
+// work: 1
+// a: 1
+// clever: 1
+// is: 1
+// day: 1
+// the: 4
+// lazy: 2
+// jumps: 1
+// dog: 2
+// and: 1
+// fox: 2
+// all: 2
+// sleeps: 1
+// brown: 2
+// very: 1
+// over: 1
+// quick: 2
