@@ -130,7 +130,9 @@ fn process_file(input_file: &str, output_file: &str) -> Result<(), WordCountErro
     let output_path = Path::new(output_file);
 
     let chunks = divide_file_into_chunks(input_path, NUM_THREADS)?;
-    let word_count = Arc::new(Mutex::new(HashMap::new()));
+
+    // 尝试使用 Rc<RefCell<>> 来模拟 C++ 中的 shared_ptr
+    let word_count = Arc::new(Mutex::new(Some(HashMap::new())));
 
     let mut handles = vec![];
 
@@ -144,24 +146,28 @@ fn process_file(input_file: &str, output_file: &str) -> Result<(), WordCountErro
             println!("Thread {} read {} lines", i, lines.len());
             let local_word_count = count_words(&lines, i);
 
+            // 尝试在线程中访问和修改 word_count
             let mut global_word_count = word_count.lock().unwrap();
-            for (word, count) in local_word_count {
-                *global_word_count.entry(word).or_insert(0) += count;
+            if let Some(map) = global_word_count.as_mut() {
+                for (word, count) in local_word_count {
+                    *map.entry(word).or_insert(0) += count;
+                }
             }
+            // 模拟一些延迟
+            thread::sleep(std::time::Duration::from_millis(100));
         });
 
         handles.push(handle);
     }
 
-    for handle in handles {
-        handle.join().unwrap();
+    // 尝试在主线程中"重置" word_count
+    {
+        let mut global_word_count = word_count.lock().unwrap();
+        *global_word_count = None; // 这里尝试"重置" word_count
     }
 
-    println!("All threads finished, merging results");
-
-    let final_word_count = Arc::try_unwrap(word_count).unwrap().into_inner().unwrap();
-
-    write_results(output_path, &final_word_count)?;
+    // 注意：这里我们不等待线程完成
+    println!("Main thread finished, but worker threads may still be running");
 
     let duration = start.elapsed();
     println!("Total processing time: {} ms", duration.as_millis());
