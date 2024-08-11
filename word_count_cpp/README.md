@@ -5,68 +5,71 @@ This is the word_count_cpp project.
 # function diagram
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#e0e0e0', 'textColor': '#e0e0e0', 'lineColor': '#e0e0e0'}}}%%
 flowchart TD
-    classDef default fill:#2C3E50,stroke:#E74C3C,color:#ECF0F1;
+    classDef default fill:#2a2a2a,stroke:#e0e0e0,color:#e0e0e0;
 
     main["main()
     Functionality: Entry point of the program
-    Side Effects: Prints messages to stdout/stderr
-    Input: None
-    Output: int (0 for success, 1 for error)"]
+Side Effects: Prints messages to stdout/stderr
+Input: None
+Output: int (0 for success, 1 for error)"]
 
-    processFile["processFile(inputFile: string_view, outputFile: string_view)
-    Functionality: Processes input file, calculates word frequencies
-    Side Effects: Prints messages, writes to output file
-    Input: inputFile, outputFile paths
-    Output: optional<string> (nullopt or error message)"]
+processFile["processFile(inputFile: string_view, outputFile: string_view)
+Functionality: Processes input file, calculates word frequencies
+Side Effects: Prints messages, writes to output file
+Input: inputFile, outputFile paths
+Output: optional<string> (nullopt or error message)"]
 
-    divideFileIntoChunks["divideFileIntoChunks(filePath: path, numChunks: size_t)
-    Functionality: Divides file into chunks
-    Side Effects: Prints file size and chunk ranges
-    Input: filePath, numChunks
-    Output: vector<FileChunk>"]
+divideFileIntoChunks["divideFileIntoChunks(filePath: path, numChunks: size_t)
+Functionality: Divides file into chunks
+Side Effects: Prints file size and chunk ranges
+Input: filePath, numChunks
+Output: vector<FileChunk>"]
 
-    readFileChunk["readFileChunk(filePath: path, chunk: FileChunk)
-    Functionality: Reads content from file chunk
-    Side Effects: Prints bytes read
-    Input: filePath, chunk
-    Output: vector<string> (lines)"]
+readFileChunk["readFileChunk(filePath: path, chunk: FileChunk)
+Functionality: Reads content from file chunk
+Side Effects: Prints bytes read
+Input: filePath, chunk
+Output: vector<string> (lines)"]
 
-    countWords["countWords(lines: vector<string>, threadId: int)
-    Functionality: Counts word occurrences in text lines
-    Side Effects: Prints progress messages
-    Input: lines, threadId
-    Output: unordered_map<string, size_t>"]
+countWords["countWords(lines: vector<string>, threadId: int)
+Functionality: Counts word occurrences in text lines
+Side Effects: Prints progress messages
+Input: lines, threadId
+Output: unordered_map<string, size_t>"]
 
-    processWord["processWord(word: string)
-    Functionality: Removes punctuation, converts to lowercase
-    Side Effects: None
-    Input: word
-    Output: string (processed word)"]
+processWord["processWord(word: string)
+Functionality: Removes punctuation, converts to lowercase
+Side Effects: None
+Input: word
+Output: string (processed word)"]
 
-    writeResults["writeResults(outputPath: path, wordCount: unordered_map<string, size_t>)
-    Functionality: Writes word count results to file
-    Side Effects: Creates/writes to output file, prints message
-    Input: outputPath, wordCount
-    Output: None"]
+writeResults["writeResults(outputPath: path, wordCount: unordered_map<string, size_t>)
+Functionality: Writes word count results to file
+Side Effects: Creates/writes to output file, prints message
+Input: outputPath, wordCount
+Output: None"]
 
-    threadSafeOutput["threadSafeOutput(message: string)
-    Functionality: Thread-safe printing to stdout
-    Side Effects: Prints message to stdout
-    Input: message
-    Output: None"]
+threadSafeOutput["threadSafeOutput(message: string)
+Functionality: Thread-safe printing to stdout
+Side Effects: Prints message to stdout
+Input: message
+Output: None"]
 
-    main -->|calls| processFile
-    processFile -->|calls| divideFileIntoChunks
-    processFile -->|calls| readFileChunk
-    processFile -->|calls| countWords
-    processFile -->|calls| writeResults
-    processFile -->|calls| threadSafeOutput
-    countWords -->|calls| processWord
-    countWords -->|calls| threadSafeOutput
-    divideFileIntoChunks -->|calls| threadSafeOutput
-    readFileChunk -->|calls| threadSafeOutput
-    writeResults -->|calls| threadSafeOutput
+main -->|calls| processFile
+processFile -->|calls| divideFileIntoChunks
+processFile -->|calls| readFileChunk
+processFile -->|calls| countWords
+processFile -->|calls| writeResults
+processFile -->|calls| threadSafeOutput
+countWords -->|calls| processWord
+countWords -->|calls| threadSafeOutput
+divideFileIntoChunks -->|calls| threadSafeOutput
+readFileChunk -->|calls| threadSafeOutput
+writeResults -->|calls| threadSafeOutput
+
+linkStyle default stroke:#e0e0e0,stroke-width:2px
 ```
 
 # API documentation
