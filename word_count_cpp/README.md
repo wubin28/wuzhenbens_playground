@@ -5,8 +5,9 @@ This is the word_count_cpp project.
 # function diagram
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#e0e0e0', 'textColor': '#e0e0e0', 'lineColor': '#e0e0e0'}}}%%
 graph TD
-    classDef default fill:#ffffff,stroke:#000000,color:#000000;
+    classDef default fill:#2a2a2a,stroke:#e0e0e0,color:#e0e0e0;
 
     A[main] -->|calls| B(processFile)
     B -->|calls| C(readFileLines)
@@ -19,30 +20,32 @@ graph TD
 输入: 无
 输出: int (退出状态)"]
 
-B["processFile
+    B["processFile
 功能: 处理文件的主要逻辑
 输入: string_view inputFile, string_view outputFile
 输出: optional<string> (错误信息)"]
 
-C["readFileLines
+    C["readFileLines
 功能: 读取文件内容
 输入: filesystem::path filePath
 输出: vector<string> (文件行)"]
 
-D["countWords
+    D["countWords
 功能: 统计单词出现次数
 输入: vector<string> lines
 输出: unordered_map<string, size_t> (单词计数)"]
 
-E["writeResults
+    E["writeResults
 功能: 将结果写入输出文件
 输入: filesystem::path outputPath, unordered_map<string, size_t> wordCount
 输出: void"]
 
-F["processWord
+    F["processWord
 功能: 处理单个单词 (去除标点, 转小写)
 输入: string word
 输出: string (处理后的单词)"]
+
+    linkStyle default stroke:#e0e0e0,stroke-width:2px
 ```
 
 # Building and installing
