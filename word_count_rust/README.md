@@ -1,8 +1,9 @@
 # Function call diagram
 
 ```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#e0e0e0', 'textColor': '#e0e0e0', 'lineColor': '#e0e0e0'}}}%%
 graph TD
-    classDef default fill:#ffffff,stroke:#000000,color:#000000;
+    classDef default fill:#2a2a2a,stroke:#e0e0e0,color:#e0e0e0;
 
     A["main<br>功能: 程序入口点<br>输入: 无<br>输出: i32"] -->|调用| B
 
@@ -21,4 +22,6 @@ graph TD
     F["process_word<br>功能: 处理单词<br>输入: &str<br>输出: String"]
 
     G["WordCountError<br>功能: 错误类型<br>输入: 无<br>输出: 无"]
+
+    linkStyle default stroke:#e0e0e0,stroke-width:2px
 ```
