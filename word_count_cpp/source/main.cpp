@@ -182,6 +182,11 @@ inline void writeResults(
     std::vector<std::unordered_map<std::string, std::size_t>> threadResults(
         NUM_THREADS);
 
+    // 修改：使用共享指针来管理 totalWordCount
+    std::shared_ptr<std::unordered_map<std::string, std::size_t>>
+        totalWordCount =
+            std::make_shared<std::unordered_map<std::string, std::size_t>>();
+
     for (std::size_t i = 0; i < NUM_THREADS; ++i) {
       threads.emplace_back(
           [&, i]()
@@ -191,29 +196,34 @@ inline void writeResults(
             threadSafeOutput("Thread " + std::to_string(i) + " read "
                              + std::to_string(lines.size()) + " lines");
             threadResults[i] = countWords(lines, i);
+
+            // 修改：在线程内部直接更新 totalWordCount
+            for (const auto& [word, count] : threadResults[i]) {
+              (*totalWordCount)[word] += count;
+            }
+
+            // 警告：这里引入了一个人为的延迟，增加出现问题的几率
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
           });
     }
 
-    for (auto& thread : threads) {
-      thread.join();
-    }
+    // 修改：在主线程中重置 totalWordCount，可能导致悬垂引用
+    totalWordCount.reset();
 
-    threadSafeOutput("All threads finished, merging results");
+    // 注意：这里不等待线程结束就继续执行
+    // 警告：这里可能产生悬垂引用！某些线程可能仍在运行并访问已被销毁的
+    // totalWordCount
 
-    std::unordered_map<std::string, std::size_t> totalWordCount;
-    for (const auto& result : threadResults) {
-      for (const auto& [word, count] : result) {
-        totalWordCount[word] += count;
-      }
-    }
-
-    writeResults(outputPath, totalWordCount);
+    threadSafeOutput(
+        "Main thread finished, but worker threads may still be running");
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration =
         std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     threadSafeOutput(
         "Total processing time: " + std::to_string(duration.count()) + " ms");
+
+    // 注意：这里我们不再调用 writeResults，因为 totalWordCount 已经被重置
 
     return std::nullopt;  // 成功时返回空的 optional
   } catch (const std::exception& e) {
