@@ -1,37 +1,88 @@
 #include <algorithm>
 #include <cctype>
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <mutex>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
 namespace
 {
 constexpr std::size_t BUFFER_SIZE = 8192;  // 8 KB buffer
+constexpr std::size_t NUM_THREADS = 4;  // 线程数
 
-[[nodiscard]] inline std::vector<std::string> readFileLines(
-    const std::filesystem::path& filePath)
+struct FileChunk
+{
+  std::streamoff start;
+  std::streamoff end;
+};
+
+std::mutex cout_mutex;
+
+void threadSafeOutput(const std::string& message)
+{
+  std::lock_guard<std::mutex> lock(cout_mutex);
+  std::cout << message << std::endl;
+}
+
+[[nodiscard]] inline std::vector<FileChunk> divideFileIntoChunks(
+    const std::filesystem::path& filePath, std::size_t numChunks)
+{
+  std::ifstream file(filePath, std::ios::binary | std::ios::ate);
+  if (!file) {
+    throw std::runtime_error("Unable to open file: " + filePath.string());
+  }
+
+  std::streamoff fileSize = file.tellg();
+  file.seekg(0, std::ios::beg);
+
+  threadSafeOutput("File size: " + std::to_string(fileSize) + " bytes");
+
+  std::vector<FileChunk> chunks;
+  std::streamoff chunkSize = fileSize / static_cast<std::streamoff>(numChunks);
+
+  for (std::size_t i = 0; i < numChunks; ++i) {
+    FileChunk chunk;
+    chunk.start = static_cast<std::streamoff>(i) * chunkSize;
+    chunk.end = (i == numChunks - 1) ? fileSize : chunk.start + chunkSize;
+    chunks.push_back(chunk);
+    threadSafeOutput("Chunk " + std::to_string(i) + ": "
+                     + std::to_string(chunk.start) + " - "
+                     + std::to_string(chunk.end));
+  }
+
+  return chunks;
+}
+
+[[nodiscard]] inline std::vector<std::string> readFileChunk(
+    const std::filesystem::path& filePath, const FileChunk& chunk)
 {
   std::ifstream file(filePath, std::ios::in | std::ios::binary);
   if (!file) {
     throw std::runtime_error("Unable to open file: " + filePath.string());
   }
 
+  file.seekg(chunk.start);
   std::vector<std::string> lines;
   std::string buffer;
   buffer.reserve(BUFFER_SIZE);
 
-  while (file) {
+  std::streamoff bytesRead = 0;
+  while (file && file.tellg() < chunk.end) {
     char ch;
     file.read(&ch, 1);
     if (file.eof())
       break;
+
+    bytesRead++;
 
     if (ch == '\n') {
       lines.push_back(std::move(buffer));
@@ -52,6 +103,7 @@ constexpr std::size_t BUFFER_SIZE = 8192;  // 8 KB buffer
     lines.push_back(std::move(buffer));
   }
 
+  threadSafeOutput("Read " + std::to_string(bytesRead) + " bytes from chunk");
   return lines;
 }
 }  // namespace
@@ -75,9 +127,10 @@ inline std::string processWord(const std::string& word)
 }
 
 [[nodiscard]] inline std::unordered_map<std::string, std::size_t> countWords(
-    const std::vector<std::string>& lines) noexcept
+    const std::vector<std::string>& lines, int threadId) noexcept
 {
   std::unordered_map<std::string, std::size_t> wordCount;
+  std::size_t totalWords = 0;
   for (const auto& line : lines) {
     std::istringstream iss(line);
     std::string word;
@@ -85,9 +138,17 @@ inline std::string processWord(const std::string& word)
       std::string processedWord = processWord(word);
       if (!processedWord.empty()) {
         ++wordCount[processedWord];
+        ++totalWords;
+        if (totalWords % 10000 == 0) {
+          threadSafeOutput("Thread " + std::to_string(threadId) + " processed "
+                           + std::to_string(totalWords) + " words");
+        }
       }
     }
   }
+  threadSafeOutput("Thread " + std::to_string(threadId)
+                   + " finished processing " + std::to_string(totalWords)
+                   + " words");
   return wordCount;
 }
 
@@ -104,6 +165,7 @@ inline void writeResults(
   for (const auto& [word, count] : wordCount) {
     outFile << word << ": " << count << '\n';
   }
+  threadSafeOutput("Results written to " + outputPath.string());
 }
 
 [[nodiscard]] inline std::optional<std::string> processFile(
@@ -113,9 +175,46 @@ inline void writeResults(
     const auto inputPath = std::filesystem::path(inputFile);
     const auto outputPath = std::filesystem::path(outputFile);
 
-    const auto lines = readFileLines(inputPath);
-    const auto wordCount = countWords(lines);
-    writeResults(outputPath, wordCount);
+    auto start = std::chrono::high_resolution_clock::now();
+
+    threadSafeOutput("Starting file processing");
+    auto chunks = divideFileIntoChunks(inputPath, NUM_THREADS);
+    std::vector<std::thread> threads;
+    std::vector<std::unordered_map<std::string, std::size_t>> threadResults(
+        NUM_THREADS);
+
+    for (std::size_t i = 0; i < NUM_THREADS; ++i) {
+      threads.emplace_back(
+          [&, i]()
+          {
+            threadSafeOutput("Thread " + std::to_string(i) + " started");
+            auto lines = readFileChunk(inputPath, chunks[i]);
+            threadSafeOutput("Thread " + std::to_string(i) + " read "
+                             + std::to_string(lines.size()) + " lines");
+            threadResults[i] = countWords(lines, i);
+          });
+    }
+
+    for (auto& thread : threads) {
+      thread.join();
+    }
+
+    threadSafeOutput("All threads finished, merging results");
+
+    std::unordered_map<std::string, std::size_t> totalWordCount;
+    for (const auto& result : threadResults) {
+      for (const auto& [word, count] : result) {
+        totalWordCount[word] += count;
+      }
+    }
+
+    writeResults(outputPath, totalWordCount);
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration =
+        std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    threadSafeOutput(
+        "Total processing time: " + std::to_string(duration.count()) + " ms");
 
     return std::nullopt;  // 成功时返回空的 optional
   } catch (const std::exception& e) {
@@ -128,6 +227,8 @@ int main()
   constexpr std::string_view inputFile = "../input.txt";
   constexpr std::string_view outputFile = "output.txt";
 
+  threadSafeOutput("Starting word count process");
+
   if (const auto error = processFile(inputFile, outputFile)) {
     std::cerr << "Error: " << *error << '\n';
     return 1;
@@ -137,32 +238,170 @@ int main()
   }
 }
 // input.txt
-// The quick brown fox jumps over the lazy dog.
-// The lazy dog sleeps all day.
-// The quick brown fox is very clever.
-// All work and no play makes Jack a dull boy.
+// Run command 'python3 generate_input.py' to generate the large input file.
+//
+// output:
+//Starting word count process
+//Starting file processing
+//File size: 3145740 bytes
+//Chunk 0: 0 - 786435
+//Chunk 1: 786435 - 1572870
+//Chunk 2: 1572870 - 2359305
+//Chunk 3: 2359305 - 3145740
+//Thread 0 started
+//Thread 1 started
+//Thread 2 started
+//Thread 3 started
+//Read 786435 bytes from chunk
+//Thread 3 read 22686 lines
+//Thread 3 processed 10000 words
+//Thread 3 processed 20000 words
+//Thread 3 processed 30000 words
+//Thread 3 processed 40000 words
+//Thread 3 processed 50000 words
+//Read 786435 bytes from chunk
+//Thread 1 read 22643 lines
+//Thread 3 processed 60000 words
+//Thread 1 processed 10000 words
+//Read 786435 bytes from chunk
+//Thread 0 read 22601 lines
+//Thread 3 processed 70000 words
+//Read 786435 bytes from chunk
+//Thread 2 read 22642 lines
+//Thread 1 processed 20000 words
+//Thread 0 processed 10000 words
+//Thread 3 processed 80000 words
+//Thread 2 processed 10000 words
+//Thread 1 processed 30000 words
+//Thread 0 processed 20000 words
+//Thread 3 processed 90000 words
+//Thread 2 processed 20000 words
+//Thread 1 processed 40000 words
+//Thread 0 processed 30000 words
+//Thread 3 processed 100000 words
+//Thread 2 processed 30000 words
+//Thread 1 processed 50000 words
+//Thread 0 processed 40000 words
+//Thread 3 processed 110000 words
+//Thread 2 processed 40000 words
+//Thread 1 processed 60000 words
+//Thread 0 processed 50000 words
+//Thread 3 processed 120000 words
+//Thread 2 processed 50000 words
+//Thread 1 processed 70000 words
+//Thread 0 processed 60000 words
+//Thread 3 processed 130000 words
+//Thread 1 processed 80000 words
+//Thread 2 processed 60000 words
+//Thread 0 processed 70000 words
+//Thread 3 processed 140000 words
+//Thread 1 processed 90000 words
+//Thread 2 processed 70000 words
+//Thread 0 processed 80000 words
+//Thread 3 processed 150000 words
+//Thread 3 finished processing 151767 words
+//Thread 2 processed 80000 words
+//Thread 1 processed 100000 words
+//Thread 0 processed 90000 words
+//Thread 2 processed 90000 words
+//Thread 1 processed 110000 words
+//Thread 0 processed 100000 words
+//Thread 2 processed 100000 words
+//Thread 1 processed 120000 words
+//Thread 0 processed 110000 words
+//Thread 2 processed 110000 words
+//Thread 1 processed 130000 words
+//Thread 0 processed 120000 words
+//Thread 2 processed 120000 words
+//Thread 1 processed 140000 words
+//Thread 0 processed 130000 words
+//Thread 2 processed 130000 words
+//Thread 1 processed 150000 words
+//Thread 1 finished processing 151843 words
+//Thread 0 processed 140000 words
+//Thread 2 processed 140000 words
+//Thread 0 processed 150000 words
+//Thread 0 finished processing 151725 words
+//Thread 2 processed 150000 words
+//Thread 2 finished processing 151745 words
+//All threads finished, merging results
+//Results written to output.txt
+//Total processing time: 7614 ms
+//Processing completed successfully.
 //
 // output.txt
-// dull: 1
-// jack: 1
-// boy: 1
-// makes: 1
-// play: 1
-// no: 1
-// work: 1
-// a: 1
-// clever: 1
-// is: 1
-// day: 1
-// the: 4
-// lazy: 2
-// jumps: 1
-// dog: 2
-// and: 1
-// fox: 2
-// all: 2
-// sleeps: 1
-// brown: 2
-// very: 1
-// over: 1
-// quick: 2
+//rce: 1
+//em: 1
+//like: 18300
+//therefore: 9122
+//is: 18340
+//no: 18124
+//fox: 8889
+//theres: 9132
+//i: 18244
+//learning: 1363
+//chocolates: 9168
+//place: 9132
+//quick: 8889
+//makes: 8992
+//think: 9122
+//may: 9120
+//to: 18344
+//lazy: 8889
+//work: 8992
+//be: 27464
+//the: 36070
+//not: 9172
+//dog: 8889
+//that: 9172
+//question: 9172
+//home: 18011
+//hardware: 1375
+//problem: 9030
+//a: 27191
+//play: 8992
+//or: 9172
+//am: 9122
+//of: 9168
+//fo: 1
+//science: 1353
+//network: 1287
+//et: 8879
+//all: 8992
+//life: 9168
+//jumps: 8889
+//box: 9168
+//over: 8889
+//elementary: 9064
+//houston: 9031
+//my: 9064
+//phone: 8879
+//we: 9031
+//brown: 8889
+//and: 8992
+//watson: 9064
+//jack: 8992
+//have: 9031
+//boy: 8992
+//analysis: 1347
+//design: 1379
+//force: 9119
+//you: 9120
+//dull: 8992
+//database: 1310
+//multithreading: 1421
+//with: 9120
+//data: 1358
+//probl: 1
+//optimization: 1330
+//intelligence: 1371
+//computer: 1378
+//dear: 9064
+//performance: 1350
+//concurrency: 1316
+//software: 1391
+//algorithm: 1396
+//programming: 1345
+//python: 1385
+//artificial: 1388
+//machine: 1380
