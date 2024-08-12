@@ -155,13 +155,20 @@ inline void writeResults(
     const std::filesystem::path& outputPath,
     const std::unordered_map<std::string, std::size_t>& wordCount)
 {
+  std::vector<std::pair<std::string, std::size_t>> sortedWords(
+      wordCount.begin(), wordCount.end());
+
+  std::sort(sortedWords.begin(),
+            sortedWords.end(),
+            [](const auto& a, const auto& b) { return a.first < b.first; });
+
   std::ofstream outFile(outputPath);
   if (!outFile) {
     throw std::runtime_error("Unable to open output file: "
                              + outputPath.string());
   }
 
-  for (const auto& [word, count] : wordCount) {
+  for (const auto& [word, count] : sortedWords) {
     outFile << word << ": " << count << '\n';
   }
   threadSafeOutput("Results written to " + outputPath.string());
