@@ -259,155 +259,155 @@ int main()
 // Thread 2 started
 // Thread 3 started
 // Read 786435 bytes from chunk
-// Thread 3 read 22686 lines
-// Thread 3 processed 10000 words
-// Thread 3 processed 20000 words
-// Thread 3 processed 30000 words
-// Thread 3 processed 40000 words
-// Thread 3 processed 50000 words
+// Thread 0 read 22601 lines
+// Thread 0 processed 10000 words
+// Thread 0 processed 20000 words
+// Thread 0 processed 30000 words
+// Thread 0 processed 40000 words
+// Thread 0 processed 50000 words
 // Read 786435 bytes from chunk
 // Thread 1 read 22643 lines
-// Thread 3 processed 60000 words
+// Thread 0 processed 60000 words
 // Thread 1 processed 10000 words
 // Read 786435 bytes from chunk
-// Thread 0 read 22601 lines
-// Thread 3 processed 70000 words
-// Read 786435 bytes from chunk
 // Thread 2 read 22642 lines
-// Thread 1 processed 20000 words
-// Thread 0 processed 10000 words
-// Thread 3 processed 80000 words
-// Thread 2 processed 10000 words
-// Thread 1 processed 30000 words
-// Thread 0 processed 20000 words
-// Thread 3 processed 90000 words
-// Thread 2 processed 20000 words
-// Thread 1 processed 40000 words
-// Thread 0 processed 30000 words
-// Thread 3 processed 100000 words
-// Thread 2 processed 30000 words
-// Thread 1 processed 50000 words
-// Thread 0 processed 40000 words
-// Thread 3 processed 110000 words
-// Thread 2 processed 40000 words
-// Thread 1 processed 60000 words
-// Thread 0 processed 50000 words
-// Thread 3 processed 120000 words
-// Thread 2 processed 50000 words
-// Thread 1 processed 70000 words
-// Thread 0 processed 60000 words
-// Thread 3 processed 130000 words
-// Thread 1 processed 80000 words
-// Thread 2 processed 60000 words
 // Thread 0 processed 70000 words
-// Thread 3 processed 140000 words
-// Thread 1 processed 90000 words
-// Thread 2 processed 70000 words
+// Read 786435 bytes from chunk
+// Thread 3 read 22686 lines
+// Thread 1 processed 20000 words
+// Thread 2 processed 10000 words
 // Thread 0 processed 80000 words
-// Thread 3 processed 150000 words
-// Thread 3 finished processing 151767 words
-// Thread 2 processed 80000 words
-// Thread 1 processed 100000 words
+// Thread 3 processed 10000 words
+// Thread 1 processed 30000 words
+// Thread 2 processed 20000 words
 // Thread 0 processed 90000 words
-// Thread 2 processed 90000 words
-// Thread 1 processed 110000 words
+// Thread 3 processed 20000 words
+// Thread 1 processed 40000 words
+// Thread 2 processed 30000 words
 // Thread 0 processed 100000 words
-// Thread 2 processed 100000 words
-// Thread 1 processed 120000 words
+// Thread 3 processed 30000 words
+// Thread 1 processed 50000 words
+// Thread 2 processed 40000 words
 // Thread 0 processed 110000 words
-// Thread 2 processed 110000 words
-// Thread 1 processed 130000 words
+// Thread 3 processed 40000 words
+// Thread 1 processed 60000 words
+// Thread 2 processed 50000 words
 // Thread 0 processed 120000 words
-// Thread 2 processed 120000 words
-// Thread 1 processed 140000 words
+// Thread 3 processed 50000 words
+// Thread 2 processed 60000 words
+// Thread 1 processed 70000 words
+// Thread 3 processed 60000 words
 // Thread 0 processed 130000 words
+// Thread 2 processed 70000 words
+// Thread 1 processed 80000 words
+// Thread 3 processed 70000 words
+// Thread 0 processed 140000 words
+// Thread 2 processed 80000 words
+// Thread 1 processed 90000 words
+// Thread 3 processed 80000 words
+// Thread 0 processed 150000 words
+// Thread 2 processed 90000 words
+// Thread 0 finished processing 151725 words
+// Thread 1 processed 100000 words
+// Thread 3 processed 90000 words
+// Thread 2 processed 100000 words
+// Thread 1 processed 110000 words
+// Thread 3 processed 100000 words
+// Thread 2 processed 110000 words
+// Thread 1 processed 120000 words
+// Thread 3 processed 110000 words
+// Thread 2 processed 120000 words
+// Thread 1 processed 130000 words
+// Thread 3 processed 120000 words
 // Thread 2 processed 130000 words
+// Thread 1 processed 140000 words
+// Thread 3 processed 130000 words
+// Thread 2 processed 140000 words
 // Thread 1 processed 150000 words
 // Thread 1 finished processing 151843 words
-// Thread 0 processed 140000 words
-// Thread 2 processed 140000 words
-// Thread 0 processed 150000 words
-// Thread 0 finished processing 151725 words
+// Thread 3 processed 140000 words
 // Thread 2 processed 150000 words
 // Thread 2 finished processing 151745 words
+// Thread 3 processed 150000 words
+// Thread 3 finished processing 151767 words
 // All threads finished, merging results
 // Results written to output.txt
-// Total processing time: 7614 ms
+// Total processing time: 7639 ms
 // Processing completed successfully.
 //
 // output.txt
-// rce: 1
-// em: 1
-// like: 18300
-// therefore: 9122
-// is: 18340
-// no: 18124
-// fox: 8889
-// theres: 9132
-// i: 18244
-// learning: 1363
-// chocolates: 9168
-// place: 9132
-// quick: 8889
-// makes: 8992
-// think: 9122
-// may: 9120
-// to: 18344
-// lazy: 8889
-// work: 8992
-// be: 27464
-// the: 36070
-// not: 9172
-// dog: 8889
-// that: 9172
-// question: 9172
-// home: 18011
-// hardware: 1375
-// problem: 9030
-// a: 27191
-// play: 8992
-// or: 9172
-// am: 9122
-// of: 9168
-// fo: 1
-// science: 1353
-// network: 1287
-// et: 8879
-// all: 8992
-// life: 9168
-// jumps: 8889
-// box: 9168
-// over: 8889
-// elementary: 9064
-// houston: 9031
-// my: 9064
-// phone: 8879
-// we: 9031
-// brown: 8889
-// and: 8992
-// watson: 9064
-// jack: 8992
-// have: 9031
-// boy: 8992
-// analysis: 1347
-// design: 1379
-// force: 9119
-// you: 9120
-// dull: 8992
-// database: 1310
-// multithreading: 1421
-// with: 9120
-// data: 1358
-// probl: 1
-// optimization: 1330
-// intelligence: 1371
-// computer: 1378
-// dear: 9064
-// performance: 1350
-// concurrency: 1316
-// software: 1391
-// algorithm: 1396
-// programming: 1345
-// python: 1385
-// artificial: 1388
-// machine: 1380
+// a: 98457
+// algorithm: 5080
+// all: 32725
+// am: 33101
+// analysis: 4931
+// and: 32787
+// artificial: 5044
+// be: 99818
+// box: 33463
+// boy: 32775
+// brown: 32309
+// chocolates: 33424
+// computer: 5010
+// concurrency: 4781
+// data: 4955
+// database: 4703
+// dear: 32990
+// design: 5040
+// dog: 32293
+// dull: 32690
+// elementary: 32952
+// em: 4
+// et: 32212
+// fo: 3
+// force: 33191
+// fox: 32245
+// hardware: 5009
+// have: 32933
+// home: 65348
+// houston: 32941
+// i: 66211
+// intelligence: 5046
+// is: 66735
+// jack: 32802
+// jumps: 32274
+// lazy: 32261
+// learning: 4963
+// life: 33392
+// like: 66448
+// machine: 5048
+// makes: 32770
+// may: 33134
+// multithreading: 5182
+// my: 32955
+// network: 4684
+// no: 65840
+// not: 33419
+// of: 33398
+// optimization: 4852
+// or: 33472
+// over: 32310
+// performance: 4910
+// phone: 32184
+// place: 33252
+// play: 32717
+// probl: 4
+// problem: 32909
+// programming: 4940
+// python: 5064
+// question: 33482
+// quick: 32291
+// rce: 4
+// science: 4941
+// software: 5060
+// that: 33473
+// the: 130310
+// therefore: 33181
+// theres: 33251
+// think: 33080
+// to: 66810
+// watson: 32910
+// we: 32912
+// with: 33129
+// work: 32723
+// you: 33206
