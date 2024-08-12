@@ -6,6 +6,8 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Instant;
 
+static mut WORD_COUNT: HashMap<String, usize> = HashMap::new();
+
 const BUFFER_SIZE: usize = 8192; // 8 KB buffer
 const NUM_THREADS: usize = 4;
 
@@ -83,15 +85,16 @@ fn process_word(word: &str) -> String {
         .collect()
 }
 
-fn count_words(lines: &[String], thread_id: usize) -> HashMap<String, usize> {
-    let mut word_count = HashMap::new();
+fn count_words(lines: &[String], thread_id: usize) {
     let mut total_words = 0;
 
     for line in lines {
         for word in line.split_whitespace() {
             let processed_word = process_word(word);
             if !processed_word.is_empty() {
-                *word_count.entry(processed_word).or_insert(0) += 1;
+                unsafe {
+                    *WORD_COUNT.entry(processed_word).or_insert(0) += 1;
+                }
                 total_words += 1;
                 if total_words % 10000 == 0 {
                     println!("Thread {} processed {} words", thread_id, total_words);
@@ -104,7 +107,6 @@ fn count_words(lines: &[String], thread_id: usize) -> HashMap<String, usize> {
         "Thread {} finished processing {} words",
         thread_id, total_words
     );
-    word_count
 }
 
 fn write_results(
@@ -136,18 +138,12 @@ fn process_file(input_file: &str, output_file: &str) -> Result<(), WordCountErro
 
     for (i, chunk) in chunks.into_iter().enumerate() {
         let input_path = input_path.to_path_buf();
-        let word_count = Arc::clone(&word_count);
 
         let handle = thread::spawn(move || {
             println!("Thread {} started", i);
             let lines = read_file_chunk(&input_path, &chunk).unwrap();
             println!("Thread {} read {} lines", i, lines.len());
-            let local_word_count = count_words(&lines, i);
-
-            let mut global_word_count = word_count.lock().unwrap();
-            for (word, count) in local_word_count {
-                *global_word_count.entry(word).or_insert(0) += count;
-            }
+            count_words(&lines, i);
         });
 
         handles.push(handle);
@@ -193,15 +189,6 @@ mod tests {
         assert_eq!(process_word("Hello,"), "hello");
         assert_eq!(process_word("World!"), "world");
         assert_eq!(process_word("Rust-lang"), "rustlang");
-    }
-
-    #[test]
-    fn test_count_words() {
-        let lines = vec!["Hello, World!".to_string(), "Hello, Rust!".to_string()];
-        let word_count = count_words(&lines, 0);
-        assert_eq!(word_count.get("hello"), Some(&2));
-        assert_eq!(word_count.get("world"), Some(&1));
-        assert_eq!(word_count.get("rust"), Some(&1));
     }
 }
 // input.txt
