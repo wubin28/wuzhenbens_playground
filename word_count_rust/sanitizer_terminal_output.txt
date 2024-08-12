@@ -1,0 +1,295 @@
+ ✘ binwu@Bensmbp  ~/OOR-local/katas/wuzhenbens_playground/word_count_rust   word_count_rust_circumvent_borrow_checker ±  RUSTFLAGS="-Z sanitizer=thread" cargo +nightly run > sanitize
+r.txt
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running `target/debug/word_count_rust`
+word_count_rust(58363,0x1eb064f40) malloc: nano zone abandoned due to inability to reserve vm space.
+==================
+WARNING: ThreadSanitizer: data race (pid=58363)
+  Write of size 8 at 0x00011242aab8 by thread T6:
+    #0 word_count_rust::process_file::_$u7b$$u7b$closure$u7d$$u7d$::hfb2996b2b40343d4 main.rs:161 (word_count_rust:arm64+0x10001f190)
+    #1 std::sys::backtrace::__rust_begin_short_backtrace::h6b860ba83d050825 backtrace.rs:154 (word_count_rust:arm64+0x10002c220)
+    #2 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::_$u7b$$u7b$closure$u7d$$u7d$::hb61da63583c0a83d mod.rs:524 (word_count_rust:arm64+0x100025e6c)
+    #3 _$LT$core..panic..unwind_safe..AssertUnwindSafe$LT$F$GT$$u20$as$u20$core..ops..function..FnOnce$LT$$LP$$RP$$GT$$GT$::call_once::h7e43e527f6bffb81 unwind_safe.rs:272 (word_count_rust:arm64+0x10002931c)
+    #4 std::panicking::try::do_call::h894ae9540b5ec223 panicking.rs:554 (word_count_rust:arm64+0x100014f74)
+    #5 __rust_try <null> (word_count_rust:arm64+0x100025f74)
+    #6 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::h2e756f94e2e08553 mod.rs:523 (word_count_rust:arm64+0x1000257e0)
+    #7 core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::h8eb1d5bad5959863 function.rs:250 (word_count_rust:arm64+0x100006d90)
+    #8 std::sys::pal::unix::thread::Thread::new::thread_start::he88e3d78f342a6c1 <null> (word_count_rust:arm64+0x100050bc4)
+
+  Previous write of size 8 at 0x00011242aab8 by thread T7:
+    #0 word_count_rust::process_file::_$u7b$$u7b$closure$u7d$$u7d$::hfb2996b2b40343d4 main.rs:161 (word_count_rust:arm64+0x10001f190)
+    #1 std::sys::backtrace::__rust_begin_short_backtrace::h6b860ba83d050825 backtrace.rs:154 (word_count_rust:arm64+0x10002c220)
+    #2 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::_$u7b$$u7b$closure$u7d$$u7d$::hb61da63583c0a83d mod.rs:524 (word_count_rust:arm64+0x100025e6c)
+    #3 _$LT$core..panic..unwind_safe..AssertUnwindSafe$LT$F$GT$$u20$as$u20$core..ops..function..FnOnce$LT$$LP$$RP$$GT$$GT$::call_once::h7e43e527f6bffb81 unwind_safe.rs:272 (word_count_rust:arm64+0x10002931c)
+    #4 std::panicking::try::do_call::h894ae9540b5ec223 panicking.rs:554 (word_count_rust:arm64+0x100014f74)
+    #5 __rust_try <null> (word_count_rust:arm64+0x100025f74)
+    #6 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::h2e756f94e2e08553 mod.rs:523 (word_count_rust:arm64+0x1000257e0)
+    #7 core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::h8eb1d5bad5959863 function.rs:250 (word_count_rust:arm64+0x100006d90)
+    #8 std::sys::pal::unix::thread::Thread::new::thread_start::he88e3d78f342a6c1 <null> (word_count_rust:arm64+0x100050bc4)
+
+  Location is heap block of size 4232 at 0x00011242a800 allocated by thread T10:
+    #0 malloc <null> (librustc-nightly_rt.tsan.dylib:arm64+0x2e4fc)
+    #1 alloc::alloc::alloc::he80dd58e4666de91 alloc.rs:98 (word_count_rust:arm64+0x1000164ac)
+    #2 alloc::alloc::Global::alloc_impl::hacc762ff31d45149 alloc.rs:181 (word_count_rust:arm64+0x100016638)
+    #3 _$LT$alloc..alloc..Global$u20$as$u20$core..alloc..Allocator$GT$::allocate::hae0f96b20b07cadb alloc.rs:241 (word_count_rust:arm64+0x100017140)
+    #4 hashbrown::raw::RawTableInner::new_uninitialized::he70b7fb1e40f5a02 mod.rs:1750 (word_count_rust:arm64+0x100019328)
+    #5 hashbrown::raw::RawTableInner::fallible_with_capacity::hfcffd16e5905a81b mod.rs:1788 (word_count_rust:arm64+0x100019680)
+    #6 hashbrown::raw::RawTable$LT$T$C$A$GT$::reserve_rehash::hefa437471e6f5259 mod.rs:1231 (word_count_rust:arm64+0x100066a10)
+    #7 hashbrown::raw::RawTable$LT$T$C$A$GT$::reserve::h7eda9822f479ff8d mod.rs:1179 (word_count_rust:arm64+0x10001ac00)
+    #8 hashbrown::rustc_entry::_$LT$impl$u20$hashbrown..map..HashMap$LT$K$C$V$C$S$C$A$GT$$GT$::rustc_entry::ha58c3b72bcf92754 rustc_entry.rs:46 (word_count_rust:arm64+0x1000288f0)
+    #9 std::collections::hash::map::HashMap$LT$K$C$V$C$S$GT$::entry::h4a3ee7cd3a6dbae8 map.rs:854 (word_count_rust:arm64+0x10000da4c)
+    #10 word_count_rust::process_file::_$u7b$$u7b$closure$u7d$$u7d$::hfb2996b2b40343d4 main.rs:161 (word_count_rust:arm64+0x10001f118)
+    #11 std::sys::backtrace::__rust_begin_short_backtrace::h6b860ba83d050825 backtrace.rs:154 (word_count_rust:arm64+0x10002c220)
+    #12 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::_$u7b$$u7b$closure$u7d$$u7d$::hb61da63583c0a83d mod.rs:524 (word_count_rust:arm64+0x100025e6c)
+    #13 _$LT$core..panic..unwind_safe..AssertUnwindSafe$LT$F$GT$$u20$as$u20$core..ops..function..FnOnce$LT$$LP$$RP$$GT$$GT$::call_once::h7e43e527f6bffb81 unwind_safe.rs:272 (word_count_rust:arm64+0x10002931c)
+    #14 std::panicking::try::do_call::h894ae9540b5ec223 panicking.rs:554 (word_count_rust:arm64+0x100014f74)
+    #15 __rust_try <null> (word_count_rust:arm64+0x100025f74)
+    #16 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::h2e756f94e2e08553 mod.rs:523 (word_count_rust:arm64+0x1000257e0)
+    #17 core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::h8eb1d5bad5959863 function.rs:250 (word_count_rust:arm64+0x100006d90)
+    #18 std::sys::pal::unix::thread::Thread::new::thread_start::he88e3d78f342a6c1 <null> (word_count_rust:arm64+0x100050bc4)
+
+  Thread T6 (tid=3755465, running) created by main thread at:
+    #0 pthread_create <null> (librustc-nightly_rt.tsan.dylib:arm64+0x7bb4)
+    #1 std::sys::pal::unix::thread::Thread::new::h9c2a604636d03a28 <null> (word_count_rust:arm64+0x100050a28)
+    #2 std::thread::Builder::spawn_unchecked::h9cfe01e2c13249e2 mod.rs:443 (word_count_rust:arm64+0x1000249c4)
+    #3 std::thread::spawn::h6b166d1c3bdefcf1 mod.rs:680 (word_count_rust:arm64+0x100024934)
+    #4 word_count_rust::process_file::ha1feb7a8f66e744c main.rs:151 (word_count_rust:arm64+0x100003968)
+    #5 word_count_rust::main::hd69738d89eacd99d main.rs:193 (word_count_rust:arm64+0x100003c0c)
+    #6 core::ops::function::FnOnce::call_once::hd27ef41c2877a7b8 function.rs:250 (word_count_rust:arm64+0x10000734c)
+    #7 std::sys::backtrace::__rust_begin_short_backtrace::he8a36aedd59962c6 backtrace.rs:154 (word_count_rust:arm64+0x10002c27c)
+    #8 std::rt::lang_start::_$u7b$$u7b$closure$u7d$$u7d$::h3ffb2509689213a4 rt.rs:164 (word_count_rust:arm64+0x10001fec8)
+    #9 std::rt::lang_start_internal::h44094210a190f545 <null> (word_count_rust:arm64+0x1000487c4)
+    #10 main <null> (word_count_rust:arm64+0x100003e7c)
+
+  Thread T7 (tid=3755466, running) created by main thread at:
+    #0 pthread_create <null> (librustc-nightly_rt.tsan.dylib:arm64+0x7bb4)
+    #1 std::sys::pal::unix::thread::Thread::new::h9c2a604636d03a28 <null> (word_count_rust:arm64+0x100050a28)
+    #2 std::thread::Builder::spawn_unchecked::h9cfe01e2c13249e2 mod.rs:443 (word_count_rust:arm64+0x1000249c4)
+    #3 std::thread::spawn::h6b166d1c3bdefcf1 mod.rs:680 (word_count_rust:arm64+0x100024934)
+    #4 word_count_rust::process_file::ha1feb7a8f66e744c main.rs:151 (word_count_rust:arm64+0x100003968)
+    #5 word_count_rust::main::hd69738d89eacd99d main.rs:193 (word_count_rust:arm64+0x100003c0c)
+    #6 core::ops::function::FnOnce::call_once::hd27ef41c2877a7b8 function.rs:250 (word_count_rust:arm64+0x10000734c)
+    #7 std::sys::backtrace::__rust_begin_short_backtrace::he8a36aedd59962c6 backtrace.rs:154 (word_count_rust:arm64+0x10002c27c)
+    #8 std::rt::lang_start::_$u7b$$u7b$closure$u7d$$u7d$::h3ffb2509689213a4 rt.rs:164 (word_count_rust:arm64+0x10001fec8)
+    #9 std::rt::lang_start_internal::h44094210a190f545 <null> (word_count_rust:arm64+0x1000487c4)
+    #10 main <null> (word_count_rust:arm64+0x100003e7c)
+
+  Thread T10 (tid=3755470, finished) created by main thread at:
+    #0 pthread_create <null> (librustc-nightly_rt.tsan.dylib:arm64+0x7bb4)
+    #1 std::sys::pal::unix::thread::Thread::new::h9c2a604636d03a28 <null> (word_count_rust:arm64+0x100050a28)
+    #2 std::thread::Builder::spawn_unchecked::h9cfe01e2c13249e2 mod.rs:443 (word_count_rust:arm64+0x1000249c4)
+    #3 std::thread::spawn::h6b166d1c3bdefcf1 mod.rs:680 (word_count_rust:arm64+0x100024934)
+    #4 word_count_rust::process_file::ha1feb7a8f66e744c main.rs:151 (word_count_rust:arm64+0x100003968)
+    #5 word_count_rust::main::hd69738d89eacd99d main.rs:193 (word_count_rust:arm64+0x100003c0c)
+    #6 core::ops::function::FnOnce::call_once::hd27ef41c2877a7b8 function.rs:250 (word_count_rust:arm64+0x10000734c)
+    #7 std::sys::backtrace::__rust_begin_short_backtrace::he8a36aedd59962c6 backtrace.rs:154 (word_count_rust:arm64+0x10002c27c)
+    #8 std::rt::lang_start::_$u7b$$u7b$closure$u7d$$u7d$::h3ffb2509689213a4 rt.rs:164 (word_count_rust:arm64+0x10001fec8)
+    #9 std::rt::lang_start_internal::h44094210a190f545 <null> (word_count_rust:arm64+0x1000487c4)
+    #10 main <null> (word_count_rust:arm64+0x100003e7c)
+
+SUMMARY: ThreadSanitizer: data race main.rs:161 in word_count_rust::process_file::_$u7b$$u7b$closure$u7d$$u7d$::hfb2996b2b40343d4
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=58363)
+  Write of size 8 at 0x000102e181c0 by thread T12:
+    #0 hashbrown::raw::RawTable$LT$T$C$A$GT$::insert_no_grow::h8f32df08cf71a31c mod.rs:1366 (word_count_rust:arm64+0x10001a078)
+    #1 std::collections::hash::map::Entry$LT$K$C$V$GT$::or_insert::h1d1798994a9b4175 map.rs:2640 (word_count_rust:arm64+0x10000d794)
+    #2 word_count_rust::process_file::_$u7b$$u7b$closure$u7d$$u7d$::hfb2996b2b40343d4 main.rs:161 (word_count_rust:arm64+0x10001f158)
+    #3 std::sys::backtrace::__rust_begin_short_backtrace::h6b860ba83d050825 backtrace.rs:154 (word_count_rust:arm64+0x10002c220)
+    #4 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::_$u7b$$u7b$closure$u7d$$u7d$::hb61da63583c0a83d mod.rs:524 (word_count_rust:arm64+0x100025e6c)
+    #5 _$LT$core..panic..unwind_safe..AssertUnwindSafe$LT$F$GT$$u20$as$u20$core..ops..function..FnOnce$LT$$LP$$RP$$GT$$GT$::call_once::h7e43e527f6bffb81 unwind_safe.rs:272 (word_count_rust:arm64+0x10002931c)
+    #6 std::panicking::try::do_call::h894ae9540b5ec223 panicking.rs:554 (word_count_rust:arm64+0x100014f74)
+    #7 __rust_try <null> (word_count_rust:arm64+0x100025f74)
+    #8 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::h2e756f94e2e08553 mod.rs:523 (word_count_rust:arm64+0x1000257e0)
+    #9 core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::h8eb1d5bad5959863 function.rs:250 (word_count_rust:arm64+0x100006d90)
+    #10 std::sys::pal::unix::thread::Thread::new::thread_start::he88e3d78f342a6c1 <null> (word_count_rust:arm64+0x100050bc4)
+
+  Previous write of size 8 at 0x000102e181c0 by thread T5:
+    #0 hashbrown::raw::RawTable$LT$T$C$A$GT$::insert_no_grow::h8f32df08cf71a31c mod.rs:1366 (word_count_rust:arm64+0x10001a078)
+    #1 std::collections::hash::map::Entry$LT$K$C$V$GT$::or_insert::h1d1798994a9b4175 map.rs:2640 (word_count_rust:arm64+0x10000d794)
+    #2 word_count_rust::process_file::_$u7b$$u7b$closure$u7d$$u7d$::hfb2996b2b40343d4 main.rs:161 (word_count_rust:arm64+0x10001f158)
+    #3 std::sys::backtrace::__rust_begin_short_backtrace::h6b860ba83d050825 backtrace.rs:154 (word_count_rust:arm64+0x10002c220)
+    #4 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::_$u7b$$u7b$closure$u7d$$u7d$::hb61da63583c0a83d mod.rs:524 (word_count_rust:arm64+0x100025e6c)
+    #5 _$LT$core..panic..unwind_safe..AssertUnwindSafe$LT$F$GT$$u20$as$u20$core..ops..function..FnOnce$LT$$LP$$RP$$GT$$GT$::call_once::h7e43e527f6bffb81 unwind_safe.rs:272 (word_count_rust:arm64+0x10002931c)
+    #6 std::panicking::try::do_call::h894ae9540b5ec223 panicking.rs:554 (word_count_rust:arm64+0x100014f74)
+    #7 __rust_try <null> (word_count_rust:arm64+0x100025f74)
+    #8 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::h2e756f94e2e08553 mod.rs:523 (word_count_rust:arm64+0x1000257e0)
+    #9 core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::h8eb1d5bad5959863 function.rs:250 (word_count_rust:arm64+0x100006d90)
+    #10 std::sys::pal::unix::thread::Thread::new::thread_start::he88e3d78f342a6c1 <null> (word_count_rust:arm64+0x100050bc4)
+
+  Location is global 'word_count_rust::GLOBAL_WORD_COUNT::h44a749c01557f39f' at 0x000102e181b0 (word_count_rust+0x1000901c0)
+
+  Thread T12 (tid=3755474, running) created by main thread at:
+    #0 pthread_create <null> (librustc-nightly_rt.tsan.dylib:arm64+0x7bb4)
+    #1 std::sys::pal::unix::thread::Thread::new::h9c2a604636d03a28 <null> (word_count_rust:arm64+0x100050a28)
+    #2 std::thread::Builder::spawn_unchecked::h9cfe01e2c13249e2 mod.rs:443 (word_count_rust:arm64+0x1000249c4)
+    #3 std::thread::spawn::h6b166d1c3bdefcf1 mod.rs:680 (word_count_rust:arm64+0x100024934)
+    #4 word_count_rust::process_file::ha1feb7a8f66e744c main.rs:151 (word_count_rust:arm64+0x100003968)
+    #5 word_count_rust::main::hd69738d89eacd99d main.rs:193 (word_count_rust:arm64+0x100003c0c)
+    #6 core::ops::function::FnOnce::call_once::hd27ef41c2877a7b8 function.rs:250 (word_count_rust:arm64+0x10000734c)
+    #7 std::sys::backtrace::__rust_begin_short_backtrace::he8a36aedd59962c6 backtrace.rs:154 (word_count_rust:arm64+0x10002c27c)
+    #8 std::rt::lang_start::_$u7b$$u7b$closure$u7d$$u7d$::h3ffb2509689213a4 rt.rs:164 (word_count_rust:arm64+0x10001fec8)
+    #9 std::rt::lang_start_internal::h44094210a190f545 <null> (word_count_rust:arm64+0x1000487c4)
+    #10 main <null> (word_count_rust:arm64+0x100003e7c)
+
+  Thread T5 (tid=3755464, running) created by main thread at:
+    #0 pthread_create <null> (librustc-nightly_rt.tsan.dylib:arm64+0x7bb4)
+    #1 std::sys::pal::unix::thread::Thread::new::h9c2a604636d03a28 <null> (word_count_rust:arm64+0x100050a28)
+    #2 std::thread::Builder::spawn_unchecked::h9cfe01e2c13249e2 mod.rs:443 (word_count_rust:arm64+0x1000249c4)
+    #3 std::thread::spawn::h6b166d1c3bdefcf1 mod.rs:680 (word_count_rust:arm64+0x100024934)
+    #4 word_count_rust::process_file::ha1feb7a8f66e744c main.rs:151 (word_count_rust:arm64+0x100003968)
+    #5 word_count_rust::main::hd69738d89eacd99d main.rs:193 (word_count_rust:arm64+0x100003c0c)
+    #6 core::ops::function::FnOnce::call_once::hd27ef41c2877a7b8 function.rs:250 (word_count_rust:arm64+0x10000734c)
+    #7 std::sys::backtrace::__rust_begin_short_backtrace::he8a36aedd59962c6 backtrace.rs:154 (word_count_rust:arm64+0x10002c27c)
+    #8 std::rt::lang_start::_$u7b$$u7b$closure$u7d$$u7d$::h3ffb2509689213a4 rt.rs:164 (word_count_rust:arm64+0x10001fec8)
+    #9 std::rt::lang_start_internal::h44094210a190f545 <null> (word_count_rust:arm64+0x1000487c4)
+    #10 main <null> (word_count_rust:arm64+0x100003e7c)
+
+SUMMARY: ThreadSanitizer: data race mod.rs:1366 in hashbrown::raw::RawTable$LT$T$C$A$GT$::insert_no_grow::h8f32df08cf71a31c
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=58363)
+  Write of size 8 at 0x000102e181c8 by thread T12:
+    #0 hashbrown::raw::RawTable$LT$T$C$A$GT$::insert_no_grow::h8f32df08cf71a31c mod.rs:1369 (word_count_rust:arm64+0x10001a0f8)
+    #1 std::collections::hash::map::Entry$LT$K$C$V$GT$::or_insert::h1d1798994a9b4175 map.rs:2640 (word_count_rust:arm64+0x10000d794)
+    #2 word_count_rust::process_file::_$u7b$$u7b$closure$u7d$$u7d$::hfb2996b2b40343d4 main.rs:161 (word_count_rust:arm64+0x10001f158)
+    #3 std::sys::backtrace::__rust_begin_short_backtrace::h6b860ba83d050825 backtrace.rs:154 (word_count_rust:arm64+0x10002c220)
+    #4 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::_$u7b$$u7b$closure$u7d$$u7d$::hb61da63583c0a83d mod.rs:524 (word_count_rust:arm64+0x100025e6c)
+    #5 _$LT$core..panic..unwind_safe..AssertUnwindSafe$LT$F$GT$$u20$as$u20$core..ops..function..FnOnce$LT$$LP$$RP$$GT$$GT$::call_once::h7e43e527f6bffb81 unwind_safe.rs:272 (word_count_rust:arm64+0x10002931c)
+    #6 std::panicking::try::do_call::h894ae9540b5ec223 panicking.rs:554 (word_count_rust:arm64+0x100014f74)
+    #7 __rust_try <null> (word_count_rust:arm64+0x100025f74)
+    #8 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::h2e756f94e2e08553 mod.rs:523 (word_count_rust:arm64+0x1000257e0)
+    #9 core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::h8eb1d5bad5959863 function.rs:250 (word_count_rust:arm64+0x100006d90)
+    #10 std::sys::pal::unix::thread::Thread::new::thread_start::he88e3d78f342a6c1 <null> (word_count_rust:arm64+0x100050bc4)
+
+  Previous write of size 8 at 0x000102e181c8 by thread T5:
+    #0 hashbrown::raw::RawTable$LT$T$C$A$GT$::insert_no_grow::h8f32df08cf71a31c mod.rs:1369 (word_count_rust:arm64+0x10001a0f8)
+    #1 std::collections::hash::map::Entry$LT$K$C$V$GT$::or_insert::h1d1798994a9b4175 map.rs:2640 (word_count_rust:arm64+0x10000d794)
+    #2 word_count_rust::process_file::_$u7b$$u7b$closure$u7d$$u7d$::hfb2996b2b40343d4 main.rs:161 (word_count_rust:arm64+0x10001f158)
+    #3 std::sys::backtrace::__rust_begin_short_backtrace::h6b860ba83d050825 backtrace.rs:154 (word_count_rust:arm64+0x10002c220)
+    #4 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::_$u7b$$u7b$closure$u7d$$u7d$::hb61da63583c0a83d mod.rs:524 (word_count_rust:arm64+0x100025e6c)
+    #5 _$LT$core..panic..unwind_safe..AssertUnwindSafe$LT$F$GT$$u20$as$u20$core..ops..function..FnOnce$LT$$LP$$RP$$GT$$GT$::call_once::h7e43e527f6bffb81 unwind_safe.rs:272 (word_count_rust:arm64+0x10002931c)
+    #6 std::panicking::try::do_call::h894ae9540b5ec223 panicking.rs:554 (word_count_rust:arm64+0x100014f74)
+    #7 __rust_try <null> (word_count_rust:arm64+0x100025f74)
+    #8 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::h2e756f94e2e08553 mod.rs:523 (word_count_rust:arm64+0x1000257e0)
+    #9 core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::h8eb1d5bad5959863 function.rs:250 (word_count_rust:arm64+0x100006d90)
+    #10 std::sys::pal::unix::thread::Thread::new::thread_start::he88e3d78f342a6c1 <null> (word_count_rust:arm64+0x100050bc4)
+
+  Location is global 'word_count_rust::GLOBAL_WORD_COUNT::h44a749c01557f39f' at 0x000102e181b0 (word_count_rust+0x1000901c8)
+
+  Thread T12 (tid=3755474, running) created by main thread at:
+    #0 pthread_create <null> (librustc-nightly_rt.tsan.dylib:arm64+0x7bb4)
+    #1 std::sys::pal::unix::thread::Thread::new::h9c2a604636d03a28 <null> (word_count_rust:arm64+0x100050a28)
+    #2 std::thread::Builder::spawn_unchecked::h9cfe01e2c13249e2 mod.rs:443 (word_count_rust:arm64+0x1000249c4)
+    #3 std::thread::spawn::h6b166d1c3bdefcf1 mod.rs:680 (word_count_rust:arm64+0x100024934)
+    #4 word_count_rust::process_file::ha1feb7a8f66e744c main.rs:151 (word_count_rust:arm64+0x100003968)
+    #5 word_count_rust::main::hd69738d89eacd99d main.rs:193 (word_count_rust:arm64+0x100003c0c)
+    #6 core::ops::function::FnOnce::call_once::hd27ef41c2877a7b8 function.rs:250 (word_count_rust:arm64+0x10000734c)
+    #7 std::sys::backtrace::__rust_begin_short_backtrace::he8a36aedd59962c6 backtrace.rs:154 (word_count_rust:arm64+0x10002c27c)
+    #8 std::rt::lang_start::_$u7b$$u7b$closure$u7d$$u7d$::h3ffb2509689213a4 rt.rs:164 (word_count_rust:arm64+0x10001fec8)
+    #9 std::rt::lang_start_internal::h44094210a190f545 <null> (word_count_rust:arm64+0x1000487c4)
+    #10 main <null> (word_count_rust:arm64+0x100003e7c)
+
+  Thread T5 (tid=3755464, running) created by main thread at:
+    #0 pthread_create <null> (librustc-nightly_rt.tsan.dylib:arm64+0x7bb4)
+    #1 std::sys::pal::unix::thread::Thread::new::h9c2a604636d03a28 <null> (word_count_rust:arm64+0x100050a28)
+    #2 std::thread::Builder::spawn_unchecked::h9cfe01e2c13249e2 mod.rs:443 (word_count_rust:arm64+0x1000249c4)
+    #3 std::thread::spawn::h6b166d1c3bdefcf1 mod.rs:680 (word_count_rust:arm64+0x100024934)
+    #4 word_count_rust::process_file::ha1feb7a8f66e744c main.rs:151 (word_count_rust:arm64+0x100003968)
+    #5 word_count_rust::main::hd69738d89eacd99d main.rs:193 (word_count_rust:arm64+0x100003c0c)
+    #6 core::ops::function::FnOnce::call_once::hd27ef41c2877a7b8 function.rs:250 (word_count_rust:arm64+0x10000734c)
+    #7 std::sys::backtrace::__rust_begin_short_backtrace::he8a36aedd59962c6 backtrace.rs:154 (word_count_rust:arm64+0x10002c27c)
+    #8 std::rt::lang_start::_$u7b$$u7b$closure$u7d$$u7d$::h3ffb2509689213a4 rt.rs:164 (word_count_rust:arm64+0x10001fec8)
+    #9 std::rt::lang_start_internal::h44094210a190f545 <null> (word_count_rust:arm64+0x1000487c4)
+    #10 main <null> (word_count_rust:arm64+0x100003e7c)
+
+SUMMARY: ThreadSanitizer: data race mod.rs:1369 in hashbrown::raw::RawTable$LT$T$C$A$GT$::insert_no_grow::h8f32df08cf71a31c
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=58363)
+  Read of size 8 at 0x000112401ad8 by thread T50:
+    #0 word_count_rust::process_file::_$u7b$$u7b$closure$u7d$$u7d$::hfb2996b2b40343d4 main.rs:161 (word_count_rust:arm64+0x10001f168)
+    #1 std::sys::backtrace::__rust_begin_short_backtrace::h6b860ba83d050825 backtrace.rs:154 (word_count_rust:arm64+0x10002c220)
+    #2 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::_$u7b$$u7b$closure$u7d$$u7d$::hb61da63583c0a83d mod.rs:524 (word_count_rust:arm64+0x100025e6c)
+    #3 _$LT$core..panic..unwind_safe..AssertUnwindSafe$LT$F$GT$$u20$as$u20$core..ops..function..FnOnce$LT$$LP$$RP$$GT$$GT$::call_once::h7e43e527f6bffb81 unwind_safe.rs:272 (word_count_rust:arm64+0x10002931c)
+    #4 std::panicking::try::do_call::h894ae9540b5ec223 panicking.rs:554 (word_count_rust:arm64+0x100014f74)
+    #5 __rust_try <null> (word_count_rust:arm64+0x100025f74)
+    #6 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::h2e756f94e2e08553 mod.rs:523 (word_count_rust:arm64+0x1000257e0)
+    #7 core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::h8eb1d5bad5959863 function.rs:250 (word_count_rust:arm64+0x100006d90)
+    #8 std::sys::pal::unix::thread::Thread::new::thread_start::he88e3d78f342a6c1 <null> (word_count_rust:arm64+0x100050bc4)
+
+  Previous write of size 8 at 0x000112401ad8 by thread T49:
+    #0 word_count_rust::process_file::_$u7b$$u7b$closure$u7d$$u7d$::hfb2996b2b40343d4 main.rs:161 (word_count_rust:arm64+0x10001f190)
+    #1 std::sys::backtrace::__rust_begin_short_backtrace::h6b860ba83d050825 backtrace.rs:154 (word_count_rust:arm64+0x10002c220)
+    #2 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::_$u7b$$u7b$closure$u7d$$u7d$::hb61da63583c0a83d mod.rs:524 (word_count_rust:arm64+0x100025e6c)
+    #3 _$LT$core..panic..unwind_safe..AssertUnwindSafe$LT$F$GT$$u20$as$u20$core..ops..function..FnOnce$LT$$LP$$RP$$GT$$GT$::call_once::h7e43e527f6bffb81 unwind_safe.rs:272 (word_count_rust:arm64+0x10002931c)
+    #4 std::panicking::try::do_call::h894ae9540b5ec223 panicking.rs:554 (word_count_rust:arm64+0x100014f74)
+    #5 __rust_try <null> (word_count_rust:arm64+0x100025f74)
+    #6 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::h2e756f94e2e08553 mod.rs:523 (word_count_rust:arm64+0x1000257e0)
+    #7 core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::h8eb1d5bad5959863 function.rs:250 (word_count_rust:arm64+0x100006d90)
+    #8 std::sys::pal::unix::thread::Thread::new::thread_start::he88e3d78f342a6c1 <null> (word_count_rust:arm64+0x100050bc4)
+
+  Location is heap block of size 4232 at 0x000112401400 allocated by thread T54:
+    #0 malloc <null> (librustc-nightly_rt.tsan.dylib:arm64+0x2e4fc)
+    #1 alloc::alloc::alloc::he80dd58e4666de91 alloc.rs:98 (word_count_rust:arm64+0x1000164ac)
+    #2 alloc::alloc::Global::alloc_impl::hacc762ff31d45149 alloc.rs:181 (word_count_rust:arm64+0x100016638)
+    #3 _$LT$alloc..alloc..Global$u20$as$u20$core..alloc..Allocator$GT$::allocate::hae0f96b20b07cadb alloc.rs:241 (word_count_rust:arm64+0x100017140)
+    #4 hashbrown::raw::RawTableInner::new_uninitialized::he70b7fb1e40f5a02 mod.rs:1750 (word_count_rust:arm64+0x100019328)
+    #5 hashbrown::raw::RawTableInner::fallible_with_capacity::hfcffd16e5905a81b mod.rs:1788 (word_count_rust:arm64+0x100019680)
+    #6 hashbrown::raw::RawTable$LT$T$C$A$GT$::reserve_rehash::hefa437471e6f5259 mod.rs:1231 (word_count_rust:arm64+0x100066a10)
+    #7 hashbrown::raw::RawTable$LT$T$C$A$GT$::reserve::h7eda9822f479ff8d mod.rs:1179 (word_count_rust:arm64+0x10001ac00)
+    #8 hashbrown::rustc_entry::_$LT$impl$u20$hashbrown..map..HashMap$LT$K$C$V$C$S$C$A$GT$$GT$::rustc_entry::ha58c3b72bcf92754 rustc_entry.rs:46 (word_count_rust:arm64+0x1000288f0)
+    #9 std::collections::hash::map::HashMap$LT$K$C$V$C$S$GT$::entry::h4a3ee7cd3a6dbae8 map.rs:854 (word_count_rust:arm64+0x10000da4c)
+    #10 word_count_rust::process_file::_$u7b$$u7b$closure$u7d$$u7d$::hfb2996b2b40343d4 main.rs:161 (word_count_rust:arm64+0x10001f118)
+    #11 std::sys::backtrace::__rust_begin_short_backtrace::h6b860ba83d050825 backtrace.rs:154 (word_count_rust:arm64+0x10002c220)
+    #12 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::_$u7b$$u7b$closure$u7d$$u7d$::hb61da63583c0a83d mod.rs:524 (word_count_rust:arm64+0x100025e6c)
+    #13 _$LT$core..panic..unwind_safe..AssertUnwindSafe$LT$F$GT$$u20$as$u20$core..ops..function..FnOnce$LT$$LP$$RP$$GT$$GT$::call_once::h7e43e527f6bffb81 unwind_safe.rs:272 (word_count_rust:arm64+0x10002931c)
+    #14 std::panicking::try::do_call::h894ae9540b5ec223 panicking.rs:554 (word_count_rust:arm64+0x100014f74)
+    #15 __rust_try <null> (word_count_rust:arm64+0x100025f74)
+    #16 std::thread::Builder::spawn_unchecked_::_$u7b$$u7b$closure$u7d$$u7d$::h2e756f94e2e08553 mod.rs:523 (word_count_rust:arm64+0x1000257e0)
+    #17 core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::h8eb1d5bad5959863 function.rs:250 (word_count_rust:arm64+0x100006d90)
+    #18 std::sys::pal::unix::thread::Thread::new::thread_start::he88e3d78f342a6c1 <null> (word_count_rust:arm64+0x100050bc4)
+
+  Thread T50 (tid=3758974, running) created by main thread at:
+    #0 pthread_create <null> (librustc-nightly_rt.tsan.dylib:arm64+0x7bb4)
+    #1 std::sys::pal::unix::thread::Thread::new::h9c2a604636d03a28 <null> (word_count_rust:arm64+0x100050a28)
+    #2 std::thread::Builder::spawn_unchecked::h9cfe01e2c13249e2 mod.rs:443 (word_count_rust:arm64+0x1000249c4)
+    #3 std::thread::spawn::h6b166d1c3bdefcf1 mod.rs:680 (word_count_rust:arm64+0x100024934)
+    #4 word_count_rust::process_file::ha1feb7a8f66e744c main.rs:151 (word_count_rust:arm64+0x100003968)
+    #5 word_count_rust::main::hd69738d89eacd99d main.rs:193 (word_count_rust:arm64+0x100003c0c)
+    #6 core::ops::function::FnOnce::call_once::hd27ef41c2877a7b8 function.rs:250 (word_count_rust:arm64+0x10000734c)
+    #7 std::sys::backtrace::__rust_begin_short_backtrace::he8a36aedd59962c6 backtrace.rs:154 (word_count_rust:arm64+0x10002c27c)
+    #8 std::rt::lang_start::_$u7b$$u7b$closure$u7d$$u7d$::h3ffb2509689213a4 rt.rs:164 (word_count_rust:arm64+0x10001fec8)
+    #9 std::rt::lang_start_internal::h44094210a190f545 <null> (word_count_rust:arm64+0x1000487c4)
+    #10 main <null> (word_count_rust:arm64+0x100003e7c)
+
+  Thread T49 (tid=3758973, running) created by main thread at:
+    #0 pthread_create <null> (librustc-nightly_rt.tsan.dylib:arm64+0x7bb4)
+    #1 std::sys::pal::unix::thread::Thread::new::h9c2a604636d03a28 <null> (word_count_rust:arm64+0x100050a28)
+    #2 std::thread::Builder::spawn_unchecked::h9cfe01e2c13249e2 mod.rs:443 (word_count_rust:arm64+0x1000249c4)
+    #3 std::thread::spawn::h6b166d1c3bdefcf1 mod.rs:680 (word_count_rust:arm64+0x100024934)
+    #4 word_count_rust::process_file::ha1feb7a8f66e744c main.rs:151 (word_count_rust:arm64+0x100003968)
+    #5 word_count_rust::main::hd69738d89eacd99d main.rs:193 (word_count_rust:arm64+0x100003c0c)
+    #6 core::ops::function::FnOnce::call_once::hd27ef41c2877a7b8 function.rs:250 (word_count_rust:arm64+0x10000734c)
+    #7 std::sys::backtrace::__rust_begin_short_backtrace::he8a36aedd59962c6 backtrace.rs:154 (word_count_rust:arm64+0x10002c27c)
+    #8 std::rt::lang_start::_$u7b$$u7b$closure$u7d$$u7d$::h3ffb2509689213a4 rt.rs:164 (word_count_rust:arm64+0x10001fec8)
+    #9 std::rt::lang_start_internal::h44094210a190f545 <null> (word_count_rust:arm64+0x1000487c4)
+    #10 main <null> (word_count_rust:arm64+0x100003e7c)
+
+  Thread T54 (tid=3758978, running) created by main thread at:
+    #0 pthread_create <null> (librustc-nightly_rt.tsan.dylib:arm64+0x7bb4)
+    #1 std::sys::pal::unix::thread::Thread::new::h9c2a604636d03a28 <null> (word_count_rust:arm64+0x100050a28)
+    #2 std::thread::Builder::spawn_unchecked::h9cfe01e2c13249e2 mod.rs:443 (word_count_rust:arm64+0x1000249c4)
+    #3 std::thread::spawn::h6b166d1c3bdefcf1 mod.rs:680 (word_count_rust:arm64+0x100024934)
+    #4 word_count_rust::process_file::ha1feb7a8f66e744c main.rs:151 (word_count_rust:arm64+0x100003968)
+    #5 word_count_rust::main::hd69738d89eacd99d main.rs:193 (word_count_rust:arm64+0x100003c0c)
+    #6 core::ops::function::FnOnce::call_once::hd27ef41c2877a7b8 function.rs:250 (word_count_rust:arm64+0x10000734c)
+    #7 std::sys::backtrace::__rust_begin_short_backtrace::he8a36aedd59962c6 backtrace.rs:154 (word_count_rust:arm64+0x10002c27c)
+    #8 std::rt::lang_start::_$u7b$$u7b$closure$u7d$$u7d$::h3ffb2509689213a4 rt.rs:164 (word_count_rust:arm64+0x10001fec8)
+    #9 std::rt::lang_start_internal::h44094210a190f545 <null> (word_count_rust:arm64+0x1000487c4)
+    #10 main <null> (word_count_rust:arm64+0x100003e7c)
+
+SUMMARY: ThreadSanitizer: data race main.rs:161 in word_count_rust::process_file::_$u7b$$u7b$closure$u7d$$u7d$::hfb2996b2b40343d4
+==================
+ThreadSanitizer: reported 4 warnings
+[1]    58363 abort      RUSTFLAGS="-Z sanitizer=thread" cargo +nightly run > sanitizer.txt

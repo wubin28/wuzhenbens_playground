@@ -6,7 +6,8 @@ use std::thread;
 use std::time::Instant;
 
 const BUFFER_SIZE: usize = 8192; // 8 KB buffer
-const NUM_THREADS: usize = 4;
+const NUM_THREADS: usize = 16;  // 增加线程数
+const NUM_RUNS: usize = 10;     // 增加运行次数
 
 #[derive(Debug)]
 enum WordCountError {
@@ -184,15 +185,17 @@ fn process_file(input_file: &str, output_file: &str) -> Result<(), WordCountErro
 
 fn main() {
     let input_file = "input.txt";
-    let output_file = "output.txt";
 
-    println!("Starting word count process");
+    for run in 1..=NUM_RUNS {
+        println!("Run {}", run);
+        let output_file = format!("output_{}.txt", run);
 
-    match process_file(input_file, output_file) {
-        Ok(_) => println!("Processing completed successfully."),
-        Err(e) => {
-            eprintln!("Error: {}", e);
-            std::process::exit(1);
+        match process_file(input_file, &output_file) {
+            Ok(_) => println!("Processing completed for run {}.", run),
+            Err(e) => {
+                eprintln!("Error in run {}: {}", run, e);
+                std::process::exit(1);
+            }
         }
     }
 }
