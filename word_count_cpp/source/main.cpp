@@ -75,11 +75,14 @@ void threadSafeOutput(const std::string& message)
   buffer.reserve(BUFFER_SIZE);
 
   std::streamoff bytesRead = 0;
-  while (file && file.tellg() < chunk.end) {
+  bool reachedEnd = false;
+  while (file && !reachedEnd) {
     char ch;
     file.read(&ch, 1);
-    if (file.eof())
+    if (file.eof()) {
+      reachedEnd = true;
       break;
+    }
 
     bytesRead++;
 
@@ -87,6 +90,9 @@ void threadSafeOutput(const std::string& message)
       lines.push_back(std::move(buffer));
       buffer.clear();
       buffer.reserve(BUFFER_SIZE);
+      if (file.tellg() >= chunk.end) {
+        reachedEnd = true;
+      }
     } else {
       buffer.push_back(ch);
     }
@@ -96,6 +102,13 @@ void threadSafeOutput(const std::string& message)
       buffer.clear();
       buffer.reserve(BUFFER_SIZE);
     }
+  }
+
+  // If we're not at the end of the file, read until the next newline
+  if (!reachedEnd && !file.eof()) {
+    std::string remainingBuffer;
+    std::getline(file, remainingBuffer);
+    buffer += remainingBuffer;
   }
 
   if (!buffer.empty()) {
@@ -135,7 +148,9 @@ inline std::string processWord(const std::string& word)
     std::string word;
     while (iss >> word) {
       std::string processedWord = processWord(word);
-      if (!processedWord.empty()) {
+      if (!processedWord.empty()
+          && processedWord.find_first_not_of(" \t\n\r") != std::string::npos)
+      {
         ++wordCount[processedWord];
         ++totalWords;
         if (totalWords % 10000 == 0) {
