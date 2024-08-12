@@ -2,6 +2,39 @@
 
 This is the word_count_cpp project.
 
+# Parallel Word Count Workflow Diagram
+
+```mermaid
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#e0e0e0', 'textColor': '#e0e0e0', 'lineColor': '#e0e0e0'}}}%%
+graph TD
+    classDef default fill:#2a2a2a,stroke:#e0e0e0,color:#e0e0e0;
+    
+    subgraph Process["单一进程"]
+        Input["input.txt"]
+        Main["主线程<br>(main函数)"]
+        T1["T1"]
+        T2["T2"]
+        T3["T3"]
+        T4["T4"]
+        MainMerge["主线程<br>(合并结果)"]
+        Output["output.txt"]
+
+        Input -->|读取| Main
+        Main -->|创建线程| T1
+        Main -->|创建线程| T2
+        Main -->|创建线程| T3
+        Main -->|创建线程| T4
+        T1 -->|线程join| MainMerge
+        T2 -->|线程join| MainMerge
+        T3 -->|线程join| MainMerge
+        T4 -->|线程join| MainMerge
+        MainMerge -->|写入| Output
+    end
+
+    classDef processClass fill:#2a2a2a,stroke:#e0e0e0,color:#e0e0e0,stroke-width:2px;
+    class Process processClass;
+```
+
 # function diagram
 
 ```mermaid
