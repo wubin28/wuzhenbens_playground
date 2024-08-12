@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, BufWriter, Seek, Write};
 use std::path::Path;
-use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Instant;
 
@@ -126,6 +125,9 @@ fn write_results(
     Ok(())
 }
 
+// Unsafe global mutable state
+static mut GLOBAL_WORD_COUNT: Option<HashMap<String, usize>> = None;
+
 fn process_file(input_file: &str, output_file: &str) -> Result<(), WordCountError> {
     let start = Instant::now();
     println!("Starting file processing");
@@ -134,13 +136,16 @@ fn process_file(input_file: &str, output_file: &str) -> Result<(), WordCountErro
     let output_path = Path::new(output_file);
 
     let chunks = divide_file_into_chunks(input_path, NUM_THREADS)?;
-    let word_count = Arc::new(Mutex::new(HashMap::new()));
+
+    // Initialize the global word count
+    unsafe {
+        GLOBAL_WORD_COUNT = Some(HashMap::new());
+    }
 
     let mut handles = vec![];
 
     for (i, chunk) in chunks.into_iter().enumerate() {
         let input_path = input_path.to_path_buf();
-        let word_count = Arc::clone(&word_count);
 
         let handle = thread::spawn(move || {
             println!("Thread {} started", i);
@@ -148,9 +153,12 @@ fn process_file(input_file: &str, output_file: &str) -> Result<(), WordCountErro
             println!("Thread {} read {} lines", i, lines.len());
             let local_word_count = count_words(&lines, i);
 
-            let mut global_word_count = word_count.lock().unwrap();
-            for (word, count) in local_word_count {
-                *global_word_count.entry(word).or_insert(0) += count;
+            // Unsafe access to global state
+            unsafe {
+                let global_word_count = GLOBAL_WORD_COUNT.as_mut().unwrap();
+                for (word, count) in local_word_count {
+                    *global_word_count.entry(word).or_insert(0) += count;
+                }
             }
         });
 
@@ -163,7 +171,8 @@ fn process_file(input_file: &str, output_file: &str) -> Result<(), WordCountErro
 
     println!("All threads finished, merging results");
 
-    let final_word_count = Arc::try_unwrap(word_count).unwrap().into_inner().unwrap();
+    // Unsafe access to get the final word count
+    let final_word_count = unsafe { GLOBAL_WORD_COUNT.take().unwrap() };
 
     write_results(output_path, &final_word_count)?;
 
