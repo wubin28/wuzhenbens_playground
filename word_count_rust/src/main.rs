@@ -114,7 +114,11 @@ fn write_results(
     let file = File::create(output_path)?;
     let mut writer = BufWriter::new(file);
 
-    for (word, count) in word_count {
+    // 将HashMap转换为Vec并排序
+    let mut sorted_words: Vec<_> = word_count.iter().collect();
+    sorted_words.sort_by(|a, b| a.0.cmp(b.0));
+
+    for (word, count) in sorted_words {
         writeln!(writer, "{}: {}", word, count)?;
     }
 
@@ -210,162 +214,107 @@ mod tests {
 // Output:
 // Starting word count process
 // Starting file processing
-// File size: 3145741 bytes
-// Chunk 0: 0 - 786435
-// Chunk 1: 786435 - 1572870
-// Chunk 2: 1572870 - 2359305
-// Chunk 3: 2359305 - 3145741
+// File size: 209733 bytes
+// Chunk 0: 0 - 52433
+// Chunk 1: 52433 - 104866
+// Chunk 2: 104866 - 157299
+// Chunk 3: 157299 - 209733
 // Thread 0 started
 // Thread 1 started
-// Thread 2 started
 // Thread 3 started
-// Read 786395 bytes from chunk
-// Thread 1 read 22681 lines
-// Read 786421 bytes from chunk
-// Thread 0 read 22635 lines
-// Read 786396 bytes from chunk
-// Thread 2 read 22594 lines
-// Read 786436 bytes from chunk
-// Thread 3 read 22718 lines
-// Thread 1 processed 10000 words
+// Thread 2 started
+// Read 52428 bytes from chunk
+// Thread 0 read 1511 lines
+// Read 52412 bytes from chunk
+// Thread 2 read 1524 lines
+// Read 52434 bytes from chunk
+// Thread 3 read 1523 lines
+// Read 52415 bytes from chunk
+// Thread 1 read 1511 lines
 // Thread 0 processed 10000 words
+// Thread 0 finished processing 10221 words
+// Thread 1 processed 10000 words
 // Thread 2 processed 10000 words
 // Thread 3 processed 10000 words
-// Thread 1 processed 20000 words
-// Thread 0 processed 20000 words
-// Thread 2 processed 20000 words
-// Thread 3 processed 20000 words
-// Thread 1 processed 30000 words
-// Thread 2 processed 30000 words
-// Thread 0 processed 30000 words
-// Thread 3 processed 30000 words
-// Thread 1 processed 40000 words
-// Thread 2 processed 40000 words
-// Thread 0 processed 40000 words
-// Thread 3 processed 40000 words
-// Thread 1 processed 50000 words
-// Thread 2 processed 50000 words
-// Thread 0 processed 50000 words
-// Thread 3 processed 50000 words
-// Thread 1 processed 60000 words
-// Thread 2 processed 60000 words
-// Thread 0 processed 60000 words
-// Thread 3 processed 60000 words
-// Thread 1 processed 70000 words
-// Thread 0 processed 70000 words
-// Thread 2 processed 70000 words
-// Thread 3 processed 70000 words
-// Thread 1 processed 80000 words
-// Thread 3 processed 80000 words
-// Thread 0 processed 80000 words
-// Thread 2 processed 80000 words
-// Thread 1 processed 90000 words
-// Thread 0 processed 90000 words
-// Thread 3 processed 90000 words
-// Thread 2 processed 90000 words
-// Thread 1 processed 100000 words
-// Thread 0 processed 100000 words
-// Thread 3 processed 100000 words
-// Thread 2 processed 100000 words
-// Thread 1 processed 110000 words
-// Thread 3 processed 110000 words
-// Thread 0 processed 110000 words
-// Thread 2 processed 110000 words
-// Thread 1 processed 120000 words
-// Thread 3 processed 120000 words
-// Thread 2 processed 120000 words
-// Thread 0 processed 120000 words
-// Thread 1 processed 130000 words
-// Thread 3 processed 130000 words
-// Thread 0 processed 130000 words
-// Thread 2 processed 130000 words
-// Thread 1 processed 140000 words
-// Thread 2 processed 140000 words
-// Thread 0 processed 140000 words
-// Thread 3 processed 140000 words
-// Thread 1 processed 150000 words
-// Thread 1 finished processing 151572 words
-// Thread 2 processed 150000 words
-// Thread 0 processed 150000 words
-// Thread 3 processed 150000 words
-// Thread 2 finished processing 152060 words
-// Thread 0 finished processing 151592 words
-// Thread 3 finished processing 151543 words
+// Thread 3 finished processing 10108 words
+// Thread 2 finished processing 10123 words
+// Thread 1 finished processing 10111 words
 // All threads finished, merging results
 // Results written to output.txt
-// Total processing time: 269 ms
+// Total processing time: 22 ms
 // Processing completed successfully.
 //
 // output.txt
-// no: 17985
-// not: 8915
-// question: 8915
-// programming: 1410
-// elementary: 9069
-// jack: 9012
-// et: 9035
-// like: 18230
-// i: 18022
-// my: 9069
-// artificial: 1333
-// ack: 1
-// chocolates: 9258
-// design: 1436
-// theres: 8973
-// and: 9012
-// software: 1368
-// be: 26901
-// have: 9172
-// think: 9011
-// problem: 9172
-// work: 9012
-// analysis: 1364
-// the: 36206
-// you: 9071
-// jumps: 9110
-// performance: 1352
-// a: 27442
-// dear: 9069
-// therefore: 9011
-// quick: 9110
-// that: 8915
-// brown: 9110
-// intelligence: 1361
-// box: 9258
-// machine: 1278
-// life: 9257
-// lazy: 9110
-// with: 9071
-// python: 1416
-// we: 9172
-// home: 18008
-// houston: 9172
-// am: 9011
-// science: 1384
-// to: 17830
-// dull: 9013
-// multithreading: 1311
-// learning: 1308
-// force: 9071
-// database: 1352
-// fox: 9110
-// or: 8915
-// watson: 9069
-// boy: 9013
-// play: 9012
-// is: 18172
-// data: 1332
-// may: 9071
-// algorithm: 1405
-// concurrency: 1285
-// hardware: 1362
-// phone: 9035
-// network: 1324
-// computer: 1317
-// optimization: 1415
-// place: 8973
-// over: 9110
-// all: 9012
-// of: 9258
-// dog: 9111
-// makes: 9012
+// a: 1802
+// algorithm: 76
+// all: 618
+// am: 616
+// analysis: 101
+// and: 618
+// artificial: 88
+// be: 1813
+// box: 606
+// boy: 618
+// brown: 610
+// chocolates: 606
+// computer: 86
+// concurrency: 93
+// data: 91
+// database: 113
+// dear: 594
+// design: 81
+// dog: 610
+// dull: 618
+// elementary: 594
+// et: 634
+// force: 627
+// fox: 610
+// hardware: 83
+// have: 578
+// home: 1226
+// houston: 577
+// i: 1231
+// intelligence: 78
+// is: 1199
+// jack: 618
+// jumps: 610
+// lazy: 610
+// learning: 102
+// life: 606
+// like: 1198
+// machine: 70
+// makes: 618
+// may: 627
+// multithreading: 83
+// my: 594
+// network: 87
+// no: 1210
+// not: 593
+// of: 606
+// on: 1
+// optimization: 87
+// or: 593
+// over: 610
+// performance: 91
+// phone: 634
+// place: 592
+// play: 618
+// problem: 579
+// programming: 83
+// python: 83
+// question: 593
+// quick: 610
+// refore: 1
+// science: 85
+// software: 91
+// that: 593
+// the: 2440
+// therefore: 615
+// theres: 592
+// think: 615
+// to: 1186
+// watson: 594
+// we: 578
+// with: 627
+// work: 618
+// you: 627
