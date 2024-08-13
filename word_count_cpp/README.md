@@ -116,7 +116,7 @@ Functionality:
 Counts the occurrences of words in the given lines of text. The function processes each word (removes punctuation and converts to lowercase), then updates the word count. It outputs a progress message every 10,000 words processed and a completion message when finished.
 
 Side Effects:
-- Prints progress and completion messages to standard output
+- Prints progress and completion messages using threadSafeOutput function
 
 Input Parameters:
 - lines: const std::vector<std::string>&
@@ -128,6 +128,9 @@ Output:
 - Return Type: std::unordered_map<std::string, std::size_t>
 - Business Meaning: A map where keys are processed words and values are the number of occurrences of each word in the input text
 
+Notes:
+- The function is marked as [[nodiscard]] and noexcept
+- Uses processWord function to process each word
 ```
 
 ## divideFileIntoChunks
@@ -139,7 +142,7 @@ Functionality:
 Divides the given file into a specified number of chunks. It calculates the file size and then creates chunks of equal size (the last chunk may be slightly larger).
 
 Side Effects:
-- Prints the file size and range of each chunk to standard output
+- Prints the file size and range of each chunk using threadSafeOutput function
 
 Input Parameters:
 - filePath: const std::filesystem::path&
@@ -151,6 +154,9 @@ Output:
 - Return Type: std::vector<FileChunk>
 - Business Meaning: A vector of FileChunk structures, each defining the start and end positions of a chunk in the file
 
+Notes:
+- The function is marked as [[nodiscard]] and inline
+- Throws std::runtime_error if unable to open the file
 ```
 
 ## main
@@ -162,7 +168,7 @@ Functionality:
 The entry point of the program. It defines input and output file paths, initiates the word count process, and handles potential errors.
 
 Side Effects:
-- Prints start and completion messages to standard output
+- Prints start and completion messages using threadSafeOutput function
 - Prints error messages to standard error stream if an error occurs
 
 Input Parameters: None
@@ -171,6 +177,9 @@ Output:
 - Return Type: int
 - Business Meaning: Returns 0 for successful execution, 1 if an error occurred
 
+Notes:
+- Uses constexpr std::string_view for input and output file paths
+- Calls processFile function to perform the word count process
 ```
 
 ## processFile
@@ -182,7 +191,7 @@ Functionality:
 Processes the input file, calculates word frequencies, and writes the results to the output file. It uses multithreading to process different parts of the file in parallel.
 
 Side Effects:
-- Prints various processing stage messages to standard output
+- Prints various processing stage messages using threadSafeOutput function
 - Creates and writes to the output file
 
 Input Parameters:
@@ -195,6 +204,10 @@ Output:
 - Return Type: std::optional<std::string>
 - Business Meaning: Returns std::nullopt if processing is successful; returns a string containing an error message if an error occurs
 
+Notes:
+- The function is marked as [[nodiscard]] and inline noexcept
+- Uses std::chrono to measure processing time
+- Creates NUM_THREADS threads to process file chunks in parallel
 ```
 
 ## processWord
@@ -215,6 +228,9 @@ Output:
 - Return Type: std::string
 - Business Meaning: Returns the processed word (without punctuation, all lowercase)
 
+Notes:
+- The function is marked as inline
+- Uses std::remove_if and std::transform for processing
 ```
 
 ## readFileChunk
@@ -226,7 +242,7 @@ Functionality:
 Reads content from a specified chunk of a file and splits it into lines.
 
 Side Effects:
-- Prints the number of bytes read to standard output
+- Prints the number of bytes read using threadSafeOutput function
 
 Input Parameters:
 - filePath: const std::filesystem::path&
@@ -238,6 +254,10 @@ Output:
 - Return Type: std::vector<std::string>
 - Business Meaning: A vector containing all lines read from the specified file chunk
 
+Notes:
+- The function is marked as [[nodiscard]] and inline
+- Uses a buffer of size BUFFER_SIZE (8192 bytes) for reading
+- Throws std::runtime_error if unable to open the file
 ```
 
 ## threadSafeOutput
@@ -257,6 +277,8 @@ Input Parameters:
 
 Output: None
 
+Notes:
+- Uses std::lock_guard with std::mutex for thread safety
 ```
 
 ## writeResults
@@ -269,7 +291,7 @@ Writes the word count results to the specified output file.
 
 Side Effects:
 - Creates and writes to the output file
-- Prints a completion message to standard output
+- Prints a completion message using threadSafeOutput function
 
 Input Parameters:
 - outputPath: const std::filesystem::path&
@@ -279,9 +301,11 @@ Input Parameters:
 
 Output: None
 
+Notes:
+- The function is marked as inline
+- Sorts words alphabetically before writing to the file
+- Throws std::runtime_error if unable to open the output file
 ```
-
-This completes the API documentation for all functions in the code, presented in alphabetical order and including all the required information. If you need any further details or have any questions, please don't hesitate to ask.
 
 # Building and installing
 
