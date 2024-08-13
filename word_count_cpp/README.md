@@ -43,50 +43,42 @@ flowchart TD
     classDef default fill:#2a2a2a,stroke:#e0e0e0,color:#e0e0e0;
 
     main["main()
-    Functionality: Entry point of the program
-Side Effects: Prints messages to stdout/stderr
+    Defines input/output paths, initiates word count, handles errors
 Input: None
 Output: int (0 for success, 1 for error)"]
 
 processFile["processFile(inputFile: string_view, outputFile: string_view)
-Functionality: Processes input file, calculates word frequencies
-Side Effects: Prints messages, writes to output file
-Input: inputFile, outputFile paths
+Processes file, calculates word frequencies, writes results
+Input: inputFile, outputFile
 Output: optional<string> (nullopt or error message)"]
 
 divideFileIntoChunks["divideFileIntoChunks(filePath: path, numChunks: size_t)
-Functionality: Divides file into chunks
-Side Effects: Prints file size and chunk ranges
+Divides file into chunks
 Input: filePath, numChunks
 Output: vector<FileChunk>"]
 
 readFileChunk["readFileChunk(filePath: path, chunk: FileChunk)
-Functionality: Reads content from file chunk
-Side Effects: Prints bytes read
+Reads content from file chunk
 Input: filePath, chunk
 Output: vector<string> (lines)"]
 
 countWords["countWords(lines: vector<string>, threadId: int)
-Functionality: Counts word occurrences in text lines
-Side Effects: Prints progress messages
+Counts word occurrences in text lines
 Input: lines, threadId
 Output: unordered_map<string, size_t>"]
 
 processWord["processWord(word: string)
-Functionality: Removes punctuation, converts to lowercase
-Side Effects: None
+Removes punctuation, converts to lowercase
 Input: word
 Output: string (processed word)"]
 
 writeResults["writeResults(outputPath: path, wordCount: unordered_map<string, size_t>)
-Functionality: Writes word count results to file
-Side Effects: Creates/writes to output file, prints message
+Writes word count results to file
 Input: outputPath, wordCount
 Output: None"]
 
 threadSafeOutput["threadSafeOutput(message: string)
-Functionality: Thread-safe printing to stdout
-Side Effects: Prints message to stdout
+Thread-safe printing to stdout
 Input: message
 Output: None"]
 
