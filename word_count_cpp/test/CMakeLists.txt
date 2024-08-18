@@ -1,23 +1,38 @@
-# Parent project does not export its library target, so this CML implicitly
-# depends on being added from it, i.e. the testing is done only from the build
-# tree and is not feasible from an install location
+cmake_minimum_required(VERSION 3.14)
 
 project(word_count_cppTests LANGUAGES CXX)
 
-# ---- Enable testing ----
+# ---- Dependencies ----
+
+include(FetchContent)
+FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG release-1.12.1
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+# ---- Tests ----
+
 enable_testing()
 
-# ---- Include GoogleTest ----
-find_package(GTest REQUIRED)
-
-# Add the executable for the tests
 add_executable(lib_test source/lib_test.cpp)
+target_link_libraries(lib_test
+        PRIVATE
+        word_count_cpp::lib
+        GTest::gtest_main
+)
 
-# Link the GoogleTest libraries
-target_link_libraries(lib_test PRIVATE word_count_cpp_lib GTest::GTest GTest::Main pthread)
-
-# Enable C++20 standard
 target_compile_features(lib_test PRIVATE cxx_std_20)
 
-# Register the test with CTest
-add_test(NAME lib_test COMMAND lib_test)
+# Add compiler warnings
+target_compile_options(lib_test
+        PRIVATE
+        $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
+        $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>
+)
+
+include(GoogleTest)
+gtest_discover_tests(lib_test)
