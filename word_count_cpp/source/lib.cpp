@@ -102,12 +102,6 @@ std::vector<std::string> readFileChunk(const std::filesystem::path& filePath,
     }
   }
 
-  if (!reachedEnd && !file.eof()) {
-    std::string remainingBuffer;
-    std::getline(file, remainingBuffer);
-    buffer += remainingBuffer;
-  }
-
   if (!buffer.empty()) {
     lines.push_back(std::move(buffer));
   }
