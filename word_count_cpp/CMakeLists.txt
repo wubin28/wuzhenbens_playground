@@ -10,6 +10,12 @@ project(
     LANGUAGES CXX
 )
 
+# Enable testing at the top level
+enable_testing()
+
+# Add subdirectory for tests if needed
+add_subdirectory(test)
+
 include(cmake/project-is-top-level.cmake)
 include(cmake/variables.cmake)
 
