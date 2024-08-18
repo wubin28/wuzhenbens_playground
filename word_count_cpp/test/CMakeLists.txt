@@ -8,13 +8,6 @@ project(word_count_cppTests LANGUAGES CXX)
 enable_testing()
 
 # ---- Include GoogleTest ----
-# Manually specify the include directory for GoogleTest
-include_directories(/opt/homebrew/opt/googletest/include)
-
-# Manually specify the library directory for GoogleTest
-link_directories(/opt/homebrew/opt/googletest/lib)
-
-# Now find the GTest package
 find_package(GTest REQUIRED)
 
 # Add the executable for the tests
@@ -27,5 +20,4 @@ target_link_libraries(lib_test PRIVATE word_count_cpp_lib GTest::GTest GTest::Ma
 target_compile_features(lib_test PRIVATE cxx_std_20)
 
 # Register the test with CTest
-add_test(NAME lib_test COMMAND lib_test)# ---- End-of-file commands ----
-# add_folders(Test)
+add_test(NAME lib_test COMMAND lib_test)
