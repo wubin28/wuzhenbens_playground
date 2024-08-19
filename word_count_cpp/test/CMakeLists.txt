@@ -23,6 +23,7 @@ target_link_libraries(lib_test
         PRIVATE
         word_count_cpp::lib
         GTest::gtest_main
+        gmock
 )
 
 target_compile_features(lib_test PRIVATE cxx_std_20)

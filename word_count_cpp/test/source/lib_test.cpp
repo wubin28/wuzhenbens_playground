@@ -3,6 +3,7 @@
 
 #include "lib.hpp"
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 namespace
@@ -495,6 +496,167 @@ TEST_F(CountWordsTest, WordsWithNumbersHandledCorrectly)
   EXPECT_EQ(result.size(), 2);
   EXPECT_EQ(result["hello123"], 2);
   EXPECT_EQ(result["world456"], 1);
+}
+
+class WriteResultsTest : public ::testing::Test
+{
+protected:
+  void SetUp() override
+  {
+    tempDir = std::filesystem::temp_directory_path() / "writeResultsTest";
+    std::filesystem::create_directories(tempDir);
+  }
+
+  void TearDown() override { std::filesystem::remove_all(tempDir); }
+
+  std::filesystem::path tempDir;
+
+  std::string readFile(const std::filesystem::path& path)
+  {
+    std::ifstream file(path);
+    return std::string(std::istreambuf_iterator<char>(file),
+                       std::istreambuf_iterator<char>());
+  }
+};
+
+TEST_F(WriteResultsTest, EmptyMapWritesEmptyFile)
+{
+  // Given: 一个空的 unordered_map 和输出文件路径
+  std::unordered_map<std::string, std::size_t> wordCount;
+  auto outputPath = tempDir / "empty_output.txt";
+
+  // When: 调用 writeResults 函数
+  word_count::writeResults(outputPath, wordCount);
+
+  // Then: 生成一个空文件
+  EXPECT_TRUE(std::filesystem::exists(outputPath));
+  EXPECT_TRUE(std::filesystem::is_empty(outputPath));
+}
+
+TEST_F(WriteResultsTest, SingleWordWrittenCorrectly)
+{
+  // Given: 一个包含单个单词的 unordered_map 和输出文件路径
+  std::unordered_map<std::string, std::size_t> wordCount = {{"hello", 1}};
+  auto outputPath = tempDir / "single_word_output.txt";
+
+  // When: 调用 writeResults 函数
+  word_count::writeResults(outputPath, wordCount);
+
+  // Then: 文件内容正确
+  std::string expectedContent = "hello: 1\n";
+  EXPECT_EQ(readFile(outputPath), expectedContent);
+}
+
+TEST_F(WriteResultsTest, MultipleWordsWrittenInAlphabeticalOrder)
+{
+  // Given: 一个包含多个单词的 unordered_map 和输出文件路径
+  std::unordered_map<std::string, std::size_t> wordCount = {
+      {"world", 2}, {"hello", 1}, {"test", 3}};
+  auto outputPath = tempDir / "multiple_words_output.txt";
+
+  // When: 调用 writeResults 函数
+  word_count::writeResults(outputPath, wordCount);
+
+  // Then: 文件内容正确且按字母顺序排序
+  std::string expectedContent = "hello: 1\ntest: 3\nworld: 2\n";
+  EXPECT_EQ(readFile(outputPath), expectedContent);
+}
+
+TEST_F(WriteResultsTest, LargeDataSetWrittenCorrectly)
+{
+  // Given: 一个包含大量数据的 unordered_map 和输出文件路径
+  std::unordered_map<std::string, std::size_t> wordCount;
+  for (int i = 0; i < 1000; ++i) {
+    wordCount[std::to_string(i)] = i;
+  }
+  auto outputPath = tempDir / "large_dataset_output.txt";
+
+  // When: 调用 writeResults 函数
+  word_count::writeResults(outputPath, wordCount);
+
+  // Then: 文件存在且不为空
+  EXPECT_TRUE(std::filesystem::exists(outputPath));
+  EXPECT_FALSE(std::filesystem::is_empty(outputPath));
+
+  // 验证文件的前几行和最后几行
+  std::string content = readFile(outputPath);
+
+  EXPECT_THAT(content, testing::StartsWith("0: 0\n1: 1\n2: 2\n3: 3\n4: 4\n"));
+  EXPECT_THAT(
+      content,
+      testing::EndsWith("995: 995\n996: 996\n997: 997\n998: 998\n999: 999\n"));
+}
+
+TEST_F(WriteResultsTest, OverwriteExistingFile)
+{
+  // Given: 一个已存在的文件和新的 unordered_map
+  auto outputPath = tempDir / "overwrite_test.txt";
+  {
+    std::ofstream file(outputPath);
+    file << "This is existing content\n";
+  }
+  std::unordered_map<std::string, std::size_t> wordCount = {{"new", 1}};
+
+  // When: 调用 writeResults 函数
+  word_count::writeResults(outputPath, wordCount);
+
+  // Then: 文件内容被新内容覆盖
+  std::string expectedContent = "new: 1\n";
+  EXPECT_EQ(readFile(outputPath), expectedContent);
+}
+
+TEST_F(WriteResultsTest, HandleSpecialCharacters)
+{
+  // Given: 一个包含特殊字符的 unordered_map 和输出文件路径
+  std::unordered_map<std::string, std::size_t> wordCount = {
+      {"hello!", 1}, {"world?", 2}, {"test:", 3}};
+  auto outputPath = tempDir / "special_chars_output.txt";
+
+  // When: 调用 writeResults 函数
+  word_count::writeResults(outputPath, wordCount);
+
+  // Then: 文件内容正确且包含特殊字符
+  std::string expectedContent = "hello!: 1\ntest:: 3\nworld?: 2\n";
+  EXPECT_EQ(readFile(outputPath), expectedContent);
+}
+
+TEST_F(WriteResultsTest, NonExistentDirectoryCreated)
+{
+  // Given: 一个不存在的目录路径
+  auto nonExistentDir = tempDir / "non_existent_dir";
+  auto outputPath = nonExistentDir / "output.txt";
+  std::unordered_map<std::string, std::size_t> wordCount = {{"test", 1}};
+
+  // When: 调用 writeResults 函数
+  word_count::writeResults(outputPath, wordCount);
+
+  // Then: 目录被创建，文件写入成功
+  EXPECT_TRUE(std::filesystem::exists(nonExistentDir));
+  EXPECT_TRUE(std::filesystem::exists(outputPath));
+  std::string expectedContent = "test: 1\n";
+  EXPECT_EQ(readFile(outputPath), expectedContent);
+}
+
+TEST_F(WriteResultsTest, ContentMatchesExpectedFormat)
+{
+  std::unordered_map<std::string, std::size_t> wordCount = {
+      {"apple", 3}, {"banana", 2}, {"cherry", 1}};
+  auto outputPath = tempDir / "format_test_output.txt";
+
+  word_count::writeResults(outputPath, wordCount);
+
+  std::string content = readFile(outputPath);
+
+  // 使用正则表达式匹配器来验证内容格式
+  EXPECT_THAT(content,
+              testing::MatchesRegex("apple: 3\n"
+                                    "banana: 2\n"
+                                    "cherry: 1\n"));
+
+  // 使用 Contains 匹配器来检查特定行的存在
+  EXPECT_THAT(content, testing::HasSubstr(std::string("apple: 3")));
+  EXPECT_THAT(content, testing::HasSubstr(std::string("banana: 2")));
+  EXPECT_THAT(content, testing::HasSubstr(std::string("cherry: 1")));
 }
 
 }  // namespace

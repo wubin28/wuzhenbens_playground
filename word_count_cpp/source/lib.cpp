@@ -157,12 +157,24 @@ std::unordered_map<std::string, std::size_t> countWords(
 void writeResults(const std::filesystem::path& outputPath,
                   const std::unordered_map<std::string, std::size_t>& wordCount)
 {
+  std::filesystem::create_directories(outputPath.parent_path());
+
   std::vector<std::pair<std::string, std::size_t>> sortedWords(
       wordCount.begin(), wordCount.end());
 
   std::sort(sortedWords.begin(),
             sortedWords.end(),
-            [](const auto& a, const auto& b) { return a.first < b.first; });
+            [](const auto& a, const auto& b)
+            {
+              // 如果两个字符串都可以转换为数字，按数字大小排序
+              if (std::all_of(a.first.begin(), a.first.end(), ::isdigit)
+                  && std::all_of(b.first.begin(), b.first.end(), ::isdigit))
+              {
+                return std::stoll(a.first) < std::stoll(b.first);
+              }
+              // 否则，按字典序排序
+              return a.first < b.first;
+            });
 
   std::ofstream outFile(outputPath);
   if (!outFile) {
