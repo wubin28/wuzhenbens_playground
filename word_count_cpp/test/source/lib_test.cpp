@@ -5,7 +5,8 @@
 
 #include <gtest/gtest.h>
 
-namespace {
+namespace
+{
 
 class DivideFileIntoChunksTest : public ::testing::Test
 {
@@ -131,13 +132,11 @@ class ReadFileChunkTest : public ::testing::Test
 protected:
   void SetUp() override
   {
-    tempFilePath = std::filesystem::temp_directory_path() / "test_read_file.txt";
+    tempFilePath =
+        std::filesystem::temp_directory_path() / "test_read_file.txt";
   }
 
-  void TearDown() override
-  {
-    std::filesystem::remove(tempFilePath);
-  }
+  void TearDown() override { std::filesystem::remove(tempFilePath); }
 
   void createFileWithContent(const std::string& content)
   {
@@ -152,7 +151,7 @@ TEST_F(ReadFileChunkTest, ReadEmptyFile)
 {
   // Given: 一个空文件和覆盖整个文件的chunk
   createFileWithContent("");
-  word_count::FileChunk chunk{0, 0};
+  word_count::FileChunk chunk {0, 0};
 
   // When: 调用readFileChunk函数
   auto lines = word_count::readFileChunk(tempFilePath, chunk);
@@ -166,7 +165,8 @@ TEST_F(ReadFileChunkTest, ReadSingleLineFile)
   // Given: 一个只有一行的文件和覆盖整个文件的chunk
   std::string content = "This is a single line.";
   createFileWithContent(content);
-  word_count::FileChunk chunk{0, static_cast<std::streamoff>(content.length())};
+  word_count::FileChunk chunk {0,
+                               static_cast<std::streamoff>(content.length())};
 
   // When: 调用readFileChunk函数
   auto lines = word_count::readFileChunk(tempFilePath, chunk);
@@ -181,7 +181,8 @@ TEST_F(ReadFileChunkTest, ReadMultiLineFile)
   // Given: 一个多行文件和覆盖整个文件的chunk
   std::string content = "Line 1\nLine 2\nLine 3\n";
   createFileWithContent(content);
-  word_count::FileChunk chunk{0, static_cast<std::streamoff>(content.length())};
+  word_count::FileChunk chunk {0,
+                               static_cast<std::streamoff>(content.length())};
 
   // When: 调用readFileChunk函数
   auto lines = word_count::readFileChunk(tempFilePath, chunk);
@@ -198,7 +199,7 @@ TEST_F(ReadFileChunkTest, ReadPartialFile)
   // Given: 一个多行文件和只覆盖部分文件的chunk
   std::string content = "Line 1\nLine 2\nLine 3\nLine 4\n";
   createFileWithContent(content);
-  word_count::FileChunk chunk{7, 19}; // 只读取 "Line 2\nLine 3\n"
+  word_count::FileChunk chunk {7, 19};  // 只读取 "Line 2\nLine 3\n"
 
   // When: 调用readFileChunk函数
   auto lines = word_count::readFileChunk(tempFilePath, chunk);
@@ -214,7 +215,7 @@ TEST_F(ReadFileChunkTest, ReadBeyondFileSize)
   // Given: 一个文件和一个超过文件大小的chunk
   std::string content = "This is a test file.";
   createFileWithContent(content);
-  word_count::FileChunk chunk{0, 1000}; // 远大于文件实际大小
+  word_count::FileChunk chunk {0, 1000};  // 远大于文件实际大小
 
   // When: 调用readFileChunk函数
   auto lines = word_count::readFileChunk(tempFilePath, chunk);
@@ -228,22 +229,24 @@ TEST_F(ReadFileChunkTest, ReadNonExistentFile)
 {
   // Given: 一个不存在的文件路径
   std::filesystem::path nonExistentFile = "non_existent_file.txt";
-  word_count::FileChunk chunk{0, 100};
+  word_count::FileChunk chunk {0, 100};
 
   // When & Then: 调用readFileChunk函数应抛出异常
-  EXPECT_THROW(word_count::readFileChunk(nonExistentFile, chunk), std::runtime_error);
+  EXPECT_THROW(word_count::readFileChunk(nonExistentFile, chunk),
+               std::runtime_error);
 }
 
 TEST_F(ReadFileChunkTest, ReadLargeFile)
 {
   // Given: 一个大文件（超过BUFFER_SIZE）和覆盖整个文件的chunk
-  std::string line = std::string(1000, 'a') + '\n'; // 1001字节的行
+  std::string line = std::string(1000, 'a') + '\n';  // 1001字节的行
   std::string content;
   for (int i = 0; i < 10; ++i) {
     content += line;
   }
   createFileWithContent(content);
-  word_count::FileChunk chunk{0, static_cast<std::streamoff>(content.length())};
+  word_count::FileChunk chunk {0,
+                               static_cast<std::streamoff>(content.length())};
 
   // When: 调用readFileChunk函数
   auto lines = word_count::readFileChunk(tempFilePath, chunk);
@@ -255,11 +258,13 @@ TEST_F(ReadFileChunkTest, ReadLargeFile)
   }
 }
 
-class ProcessWordTest : public ::testing::Test {
+class ProcessWordTest : public ::testing::Test
+{
 protected:
 };
 
-TEST_F(ProcessWordTest, LowercaseWordRemainsUnchanged) {
+TEST_F(ProcessWordTest, LowercaseWordRemainsUnchanged)
+{
   // Given
   std::string input = "hello";
 
@@ -270,7 +275,8 @@ TEST_F(ProcessWordTest, LowercaseWordRemainsUnchanged) {
   EXPECT_EQ(result, "hello");
 }
 
-TEST_F(ProcessWordTest, UppercaseWordIsConvertedToLowercase) {
+TEST_F(ProcessWordTest, UppercaseWordIsConvertedToLowercase)
+{
   // Given
   std::string input = "WORLD";
 
@@ -281,7 +287,8 @@ TEST_F(ProcessWordTest, UppercaseWordIsConvertedToLowercase) {
   EXPECT_EQ(result, "world");
 }
 
-TEST_F(ProcessWordTest, MixedCaseWordIsConvertedToLowercase) {
+TEST_F(ProcessWordTest, MixedCaseWordIsConvertedToLowercase)
+{
   // Given
   std::string input = "MiXeD";
 
@@ -292,7 +299,8 @@ TEST_F(ProcessWordTest, MixedCaseWordIsConvertedToLowercase) {
   EXPECT_EQ(result, "mixed");
 }
 
-TEST_F(ProcessWordTest, PunctuationIsRemoved) {
+TEST_F(ProcessWordTest, PunctuationIsRemoved)
+{
   // Given
   std::string input = "hello!";
 
@@ -303,7 +311,8 @@ TEST_F(ProcessWordTest, PunctuationIsRemoved) {
   EXPECT_EQ(result, "hello");
 }
 
-TEST_F(ProcessWordTest, MultiplePunctuationMarksAreRemoved) {
+TEST_F(ProcessWordTest, MultiplePunctuationMarksAreRemoved)
+{
   // Given
   std::string input = "hello!!!";
 
@@ -314,7 +323,8 @@ TEST_F(ProcessWordTest, MultiplePunctuationMarksAreRemoved) {
   EXPECT_EQ(result, "hello");
 }
 
-TEST_F(ProcessWordTest, PunctuationInMiddleOfWordIsRemoved) {
+TEST_F(ProcessWordTest, PunctuationInMiddleOfWordIsRemoved)
+{
   // Given
   std::string input = "he!llo";
 
@@ -325,7 +335,8 @@ TEST_F(ProcessWordTest, PunctuationInMiddleOfWordIsRemoved) {
   EXPECT_EQ(result, "hello");
 }
 
-TEST_F(ProcessWordTest, EmptyStringReturnsEmptyString) {
+TEST_F(ProcessWordTest, EmptyStringReturnsEmptyString)
+{
   // Given
   std::string input = "";
 
@@ -336,7 +347,8 @@ TEST_F(ProcessWordTest, EmptyStringReturnsEmptyString) {
   EXPECT_EQ(result, "");
 }
 
-TEST_F(ProcessWordTest, StringWithOnlyPunctuationReturnsEmptyString) {
+TEST_F(ProcessWordTest, StringWithOnlyPunctuationReturnsEmptyString)
+{
   // Given
   std::string input = "!!!";
 
@@ -347,7 +359,8 @@ TEST_F(ProcessWordTest, StringWithOnlyPunctuationReturnsEmptyString) {
   EXPECT_EQ(result, "");
 }
 
-TEST_F(ProcessWordTest, WordWithNumbersRemainsUnchanged) {
+TEST_F(ProcessWordTest, WordWithNumbersRemainsUnchanged)
+{
   // Given
   std::string input = "hello123";
 
@@ -358,7 +371,8 @@ TEST_F(ProcessWordTest, WordWithNumbersRemainsUnchanged) {
   EXPECT_EQ(result, "hello123");
 }
 
-TEST_F(ProcessWordTest, WordWithSpacesRemainsUnchanged) {
+TEST_F(ProcessWordTest, WordWithSpacesRemainsUnchanged)
+{
   // Given
   std::string input = "hello world";
 
