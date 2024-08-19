@@ -5,7 +5,7 @@
 int main()
 {
   constexpr std::string_view inputFile = "../input.txt";
-  constexpr std::string_view outputFile = "output.txt";
+  constexpr std::string_view outputFile = "./output.txt";
 
   std::cout << "Starting word count process" << std::endl;
 

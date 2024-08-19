@@ -157,7 +157,10 @@ std::unordered_map<std::string, std::size_t> countWords(
 void writeResults(const std::filesystem::path& outputPath,
                   const std::unordered_map<std::string, std::size_t>& wordCount)
 {
-  std::filesystem::create_directories(outputPath.parent_path());
+  // Only create directories if the output path has a parent path
+  if (outputPath.has_parent_path()) {
+    std::filesystem::create_directories(outputPath.parent_path());
+  }
 
   std::vector<std::pair<std::string, std::size_t>> sortedWords(
       wordCount.begin(), wordCount.end());
