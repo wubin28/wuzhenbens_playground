@@ -5,6 +5,8 @@
 
 #include <gtest/gtest.h>
 
+namespace {
+
 class DivideFileIntoChunksTest : public ::testing::Test
 {
 protected:
@@ -252,3 +254,119 @@ TEST_F(ReadFileChunkTest, ReadLargeFile)
     EXPECT_EQ(line, std::string(1000, 'a'));
   }
 }
+
+class ProcessWordTest : public ::testing::Test {
+protected:
+};
+
+TEST_F(ProcessWordTest, LowercaseWordRemainsUnchanged) {
+  // Given
+  std::string input = "hello";
+
+  // When
+  std::string result = word_count::processWord(input);
+
+  // Then
+  EXPECT_EQ(result, "hello");
+}
+
+TEST_F(ProcessWordTest, UppercaseWordIsConvertedToLowercase) {
+  // Given
+  std::string input = "WORLD";
+
+  // When
+  std::string result = word_count::processWord(input);
+
+  // Then
+  EXPECT_EQ(result, "world");
+}
+
+TEST_F(ProcessWordTest, MixedCaseWordIsConvertedToLowercase) {
+  // Given
+  std::string input = "MiXeD";
+
+  // When
+  std::string result = word_count::processWord(input);
+
+  // Then
+  EXPECT_EQ(result, "mixed");
+}
+
+TEST_F(ProcessWordTest, PunctuationIsRemoved) {
+  // Given
+  std::string input = "hello!";
+
+  // When
+  std::string result = word_count::processWord(input);
+
+  // Then
+  EXPECT_EQ(result, "hello");
+}
+
+TEST_F(ProcessWordTest, MultiplePunctuationMarksAreRemoved) {
+  // Given
+  std::string input = "hello!!!";
+
+  // When
+  std::string result = word_count::processWord(input);
+
+  // Then
+  EXPECT_EQ(result, "hello");
+}
+
+TEST_F(ProcessWordTest, PunctuationInMiddleOfWordIsRemoved) {
+  // Given
+  std::string input = "he!llo";
+
+  // When
+  std::string result = word_count::processWord(input);
+
+  // Then
+  EXPECT_EQ(result, "hello");
+}
+
+TEST_F(ProcessWordTest, EmptyStringReturnsEmptyString) {
+  // Given
+  std::string input = "";
+
+  // When
+  std::string result = word_count::processWord(input);
+
+  // Then
+  EXPECT_EQ(result, "");
+}
+
+TEST_F(ProcessWordTest, StringWithOnlyPunctuationReturnsEmptyString) {
+  // Given
+  std::string input = "!!!";
+
+  // When
+  std::string result = word_count::processWord(input);
+
+  // Then
+  EXPECT_EQ(result, "");
+}
+
+TEST_F(ProcessWordTest, WordWithNumbersRemainsUnchanged) {
+  // Given
+  std::string input = "hello123";
+
+  // When
+  std::string result = word_count::processWord(input);
+
+  // Then
+  EXPECT_EQ(result, "hello123");
+}
+
+TEST_F(ProcessWordTest, WordWithSpacesRemainsUnchanged) {
+  // Given
+  std::string input = "hello world";
+
+  // When
+  std::string result = word_count::processWord(input);
+
+  // Then
+  EXPECT_EQ(result, "hello world");
+}
+
+}  // namespace
