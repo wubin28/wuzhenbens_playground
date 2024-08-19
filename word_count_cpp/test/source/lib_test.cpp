@@ -383,4 +383,118 @@ TEST_F(ProcessWordTest, WordWithSpacesRemainsUnchanged)
   EXPECT_EQ(result, "hello world");
 }
 
+class CountWordsTest : public ::testing::Test
+{
+protected:
+  int threadId = 0;  // 使用固定的 threadId 进行测试
+};
+
+TEST_F(CountWordsTest, EmptyInputReturnsEmptyMap)
+{
+  // Given: 一个空的输入向量
+  std::vector<std::string> input;
+
+  // When: 调用 countWords 函数
+  auto result = word_count::countWords(input, threadId);
+
+  // Then: 返回一个空的 unordered_map
+  EXPECT_TRUE(result.empty());
+}
+
+TEST_F(CountWordsTest, SingleWordCountedCorrectly)
+{
+  // Given: 一个包含单个单词的输入向量
+  std::vector<std::string> input = {"hello"};
+
+  // When: 调用 countWords 函数
+  auto result = word_count::countWords(input, threadId);
+
+  // Then: 返回包含该单词计数为1的 unordered_map
+  EXPECT_EQ(result.size(), 1);
+  EXPECT_EQ(result["hello"], 1);
+}
+
+TEST_F(CountWordsTest, MultipleWordsCountedCorrectly)
+{
+  // Given: 一个包含多个单词的输入向量
+  std::vector<std::string> input = {"hello world", "hello universe"};
+
+  // When: 调用 countWords 函数
+  auto result = word_count::countWords(input, threadId);
+
+  // Then: 返回正确计数的 unordered_map
+  EXPECT_EQ(result.size(), 3);
+  EXPECT_EQ(result["hello"], 2);
+  EXPECT_EQ(result["world"], 1);
+  EXPECT_EQ(result["universe"], 1);
+}
+
+TEST_F(CountWordsTest, PunctuationRemovedAndLowercased)
+{
+  // Given: 一个包含带标点符号和大写字母的单词的输入向量
+  std::vector<std::string> input = {"Hello!", "WORLD."};
+
+  // When: 调用 countWords 函数
+  auto result = word_count::countWords(input, threadId);
+
+  // Then: 返回处理后的单词计数的 unordered_map
+  EXPECT_EQ(result.size(), 2);
+  EXPECT_EQ(result["hello"], 1);
+  EXPECT_EQ(result["world"], 1);
+}
+
+TEST_F(CountWordsTest, EmptyWordsIgnored)
+{
+  // Given: 一个包含空字符串的输入向量
+  std::vector<std::string> input = {"hello", "", "world", "  "};
+
+  // When: 调用 countWords 函数
+  auto result = word_count::countWords(input, threadId);
+
+  // Then: 返回忽略空字符串后的单词计数的 unordered_map
+  EXPECT_EQ(result.size(), 2);
+  EXPECT_EQ(result["hello"], 1);
+  EXPECT_EQ(result["world"], 1);
+}
+
+TEST_F(CountWordsTest, LargeInputHandledCorrectly)
+{
+  // Given: 一个包含大量重复单词的输入向量
+  std::vector<std::string> input(10000, "test");
+
+  // When: 调用 countWords 函数
+  auto result = word_count::countWords(input, threadId);
+
+  // Then: 返回正确计数的 unordered_map
+  EXPECT_EQ(result.size(), 1);
+  EXPECT_EQ(result["test"], 10000);
+}
+
+TEST_F(CountWordsTest, MixedCaseWordsCountedAsSame)
+{
+  // Given: 一个包含不同大小写形式的相同单词的输入向量
+  std::vector<std::string> input = {"Hello", "hElLo", "HELLO", "hello"};
+
+  // When: 调用 countWords 函数
+  auto result = word_count::countWords(input, threadId);
+
+  // Then: 返回将所有形式视为同一单词的计数的 unordered_map
+  EXPECT_EQ(result.size(), 1);
+  EXPECT_EQ(result["hello"], 4);
+}
+
+TEST_F(CountWordsTest, WordsWithNumbersHandledCorrectly)
+{
+  // Given: 一个包含带数字的单词的输入向量
+  std::vector<std::string> input = {"hello123", "world456", "hello123"};
+
+  // When: 调用 countWords 函数
+  auto result = word_count::countWords(input, threadId);
+
+  // Then: 返回正确处理带数字单词的计数的 unordered_map
+  EXPECT_EQ(result.size(), 2);
+  EXPECT_EQ(result["hello123"], 2);
+  EXPECT_EQ(result["world456"], 1);
+}
+
 }  // namespace
