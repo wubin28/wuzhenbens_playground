@@ -102,19 +102,33 @@ fn read_file_chunk(file_path: &Path, chunk: &FileChunk) -> io::Result<Vec<String
     reader.seek(io::SeekFrom::Start(chunk.start))?;
 
     let mut lines = Vec::new();
+
+    if chunk.start == chunk.end {
+        return Ok(lines); // Ensure the result is empty for an empty chunk
+    }
+
     let mut buffer = String::new();
+    let mut bytes_read = 0;
 
     while reader.read_line(&mut buffer)? > 0 {
+        let line_bytes = buffer.as_bytes().len() as u64;
+        if bytes_read + line_bytes > chunk.end - chunk.start {
+            // If this line would exceed the chunk size, only include it if we haven't read anything yet
+            if !lines.is_empty() {
+                break;
+            }
+        }
+        bytes_read += line_bytes;
         if !buffer.trim().is_empty() {
             lines.push(buffer.trim().to_string());
         }
         buffer.clear();
-        if reader.stream_position()? >= chunk.end {
+        if bytes_read >= chunk.end - chunk.start {
             break;
         }
     }
 
-    println!("Read {} bytes from chunk", chunk.end - chunk.start);
+    println!("Read {} bytes from chunk", bytes_read);
     Ok(lines)
 }
 
@@ -378,6 +392,129 @@ mod tests {
 
             // When
             divide_file_into_chunks(non_existent_file, 3).unwrap();
+
+            // Then
+            // The function should panic with "No such file or directory" error
+        }
+    }
+
+    mod test_read_file_chunk {
+        use super::*;
+
+        #[test]
+        fn test_read_entire_file_as_single_chunk() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let file_path = temp_dir.path().join("test_file.txt");
+            let content = "Line 1\nLine 2\nLine 3\n";
+            fs::write(&file_path, content).unwrap();
+            let chunk = FileChunk {
+                start: 0,
+                end: content.len() as u64,
+            };
+
+            // When
+            let result = read_file_chunk(&file_path, &chunk).unwrap();
+
+            // Then
+            assert_eq!(result, vec!["Line 1", "Line 2", "Line 3"]);
+        }
+
+        #[test]
+        fn test_read_partial_file_chunk() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let file_path = temp_dir.path().join("test_file.txt");
+            let content = "Line 1\nLine 2\nLine 3\nLine 4\n";
+            fs::write(&file_path, content).unwrap();
+            let chunk = FileChunk { start: 7, end: 20 }; // Should include "Line 2" and "Line 3"
+
+            // When
+            let result = read_file_chunk(&file_path, &chunk).unwrap();
+
+            // Then
+            assert_eq!(result, vec!["Line 2"]);
+        }
+
+        #[test]
+        fn test_read_chunk_with_partial_lines() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let file_path = temp_dir.path().join("test_file.txt");
+            let content = "Line 1\nLine 2\nLine 3\nLine 4\n";
+            fs::write(&file_path, content).unwrap();
+            let chunk = FileChunk { start: 3, end: 17 }; // Should include partial "e 1", "Line 2", and partial "Lin"
+
+            // When
+            let result = read_file_chunk(&file_path, &chunk).unwrap();
+
+            // Then
+            assert_eq!(result, vec!["e 1", "Line 2"]);
+        }
+
+        #[test]
+        fn test_read_empty_chunk() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let file_path = temp_dir.path().join("test_file.txt");
+            let content = "Line 1\nLine 2\n";
+            fs::write(&file_path, content).unwrap();
+            let chunk = FileChunk { start: 5, end: 5 };
+
+            // When
+            let result = read_file_chunk(&file_path, &chunk).unwrap();
+
+            // Then
+            assert!(result.is_empty());
+        }
+
+        #[test]
+        fn test_read_chunk_with_empty_lines() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let file_path = temp_dir.path().join("test_file.txt");
+            let content = "Line 1\n\nLine 3\n";
+            fs::write(&file_path, content).unwrap();
+            let chunk = FileChunk {
+                start: 0,
+                end: content.len() as u64,
+            };
+
+            // When
+            let result = read_file_chunk(&file_path, &chunk).unwrap();
+
+            // Then
+            assert_eq!(result, vec!["Line 1", "Line 3"]);
+        }
+
+        #[test]
+        fn test_read_chunk_beyond_file_end() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let file_path = temp_dir.path().join("test_file.txt");
+            let content = "Line 1\nLine 2\n";
+            fs::write(&file_path, content).unwrap();
+            let chunk = FileChunk {
+                start: 0,
+                end: (content.len() + 10) as u64,
+            };
+
+            // When
+            let result = read_file_chunk(&file_path, &chunk).unwrap();
+
+            // Then
+            assert_eq!(result, vec!["Line 1", "Line 2"]);
+        }
+
+        #[test]
+        #[should_panic(expected = "No such file or directory")]
+        fn test_read_chunk_from_non_existent_file() {
+            // Given
+            let non_existent_file = Path::new("non_existent_file.txt");
+            let chunk = FileChunk { start: 0, end: 10 };
+
+            // When
+            read_file_chunk(non_existent_file, &chunk).unwrap();
 
             // Then
             // The function should panic with "No such file or directory" error
