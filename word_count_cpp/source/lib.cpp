@@ -20,7 +20,41 @@ static void threadSafeOutput(const std::string& message)
 }
 
 constexpr std::size_t BUFFER_SIZE = 8192;  // 8 KB buffer
-constexpr std::size_t NUM_THREADS = 1;  // 线程数
+constexpr std::size_t NUM_THREADS = 4;  // 线程数
+
+// 新增：创建chunk文件的辅助函数
+void createChunkFile(const std::filesystem::path& inputPath,
+                     const word_count::FileChunk& chunk,
+                     int chunkIndex)
+{
+  std::ifstream inputFile(inputPath, std::ios::binary);
+  if (!inputFile) {
+    throw std::runtime_error("Unable to open input file: "
+                             + inputPath.string());
+  }
+
+  std::filesystem::path chunkPath = std::filesystem::current_path()
+      / ("input_chunk_" + std::to_string(chunkIndex) + ".txt");
+  std::ofstream chunkFile(chunkPath, std::ios::binary);
+  if (!chunkFile) {
+    throw std::runtime_error("Unable to create chunk file: "
+                             + chunkPath.string());
+  }
+
+  inputFile.seekg(chunk.start);
+  std::vector<char> buffer(BUFFER_SIZE);
+  std::streamsize bytesToRead = chunk.end - chunk.start;
+
+  while (bytesToRead > 0 && inputFile) {
+    std::streamsize bytesRead =
+        std::min(static_cast<std::streamsize>(buffer.size()), bytesToRead);
+    inputFile.read(buffer.data(), bytesRead);
+    chunkFile.write(buffer.data(), inputFile.gcount());
+    bytesToRead -= inputFile.gcount();
+  }
+
+  threadSafeOutput("Created chunk file: " + chunkPath.string());
+}
 }  // namespace
 
 namespace word_count
@@ -44,16 +78,44 @@ std::vector<FileChunk> divideFileIntoChunks(
   threadSafeOutput("File size: " + std::to_string(fileSize) + " bytes");
 
   std::vector<FileChunk> chunks;
-  std::streamoff chunkSize = fileSize / static_cast<std::streamoff>(numChunks);
+  std::streamoff targetChunkSize =
+      fileSize / static_cast<std::streamoff>(numChunks);
+  std::streamoff currentPos = 0;
 
-  for (std::size_t i = 0; i < numChunks; ++i) {
+  for (std::size_t i = 0; i < numChunks && currentPos < fileSize; ++i) {
     FileChunk chunk;
-    chunk.start = static_cast<std::streamoff>(i) * chunkSize;
-    chunk.end = (i == numChunks - 1) ? fileSize : chunk.start + chunkSize;
+    chunk.start = currentPos;
+
+    // 移动到目标chunk结束位置
+    std::streamoff endPos = std::min(currentPos + targetChunkSize, fileSize);
+    file.seekg(endPos);
+
+    // 如果不是文件末尾，继续读取直到下一个换行符
+    if (endPos < fileSize) {
+      std::string line;
+      if (std::getline(file, line)) {
+        endPos = file.tellg();
+      }
+    }
+
+    // 如果这个chunk太大了，我们尝试在上一个换行符处分割
+    if (i < numChunks - 1 && endPos - currentPos > targetChunkSize * 1.5) {
+      file.seekg(currentPos + targetChunkSize);
+      std::string line;
+      if (std::getline(file, line)) {
+        endPos = file.tellg();
+      }
+    }
+
+    chunk.end = endPos;
     chunks.push_back(chunk);
+    createChunkFile(filePath, chunk, i);  // 创建chunk文件
+
     threadSafeOutput("Chunk " + std::to_string(i) + ": "
                      + std::to_string(chunk.start) + " - "
                      + std::to_string(chunk.end));
+
+    currentPos = chunk.end;
   }
 
   return chunks;
