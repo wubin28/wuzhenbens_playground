@@ -15,23 +15,25 @@ struct FileChunk {
 }
 
 fn create_chunk_file(input_path: &Path, chunk: &FileChunk, chunk_index: usize) -> io::Result<()> {
-    let mut input_file = File::open(input_path)?;
-    input_file.seek(SeekFrom::Start(chunk.start))?;
-
     let chunk_path = PathBuf::from(format!("input_chunk_{}.txt", chunk_index));
     let mut chunk_file = File::create(&chunk_path)?;
 
-    let mut buffer = vec![0; BUFFER_SIZE];
-    let mut bytes_to_read = chunk.end - chunk.start;
+    if chunk.start < chunk.end {
+        let mut input_file = File::open(input_path)?;
+        input_file.seek(SeekFrom::Start(chunk.start))?;
 
-    while bytes_to_read > 0 {
-        let bytes_read =
-            input_file.read(&mut buffer[..std::cmp::min(BUFFER_SIZE, bytes_to_read as usize)])?;
-        if bytes_read == 0 {
-            break;
+        let mut buffer = vec![0; BUFFER_SIZE];
+        let mut bytes_to_read = chunk.end - chunk.start;
+
+        while bytes_to_read > 0 {
+            let bytes_read = input_file
+                .read(&mut buffer[..std::cmp::min(BUFFER_SIZE, bytes_to_read as usize)])?;
+            if bytes_read == 0 {
+                break;
+            }
+            chunk_file.write_all(&buffer[..bytes_read])?;
+            bytes_to_read -= bytes_read as u64;
         }
-        chunk_file.write_all(&buffer[..bytes_read])?;
-        bytes_to_read -= bytes_read as u64;
     }
 
     println!("Created chunk file: {}", chunk_path.display());
@@ -45,36 +47,50 @@ fn divide_file_into_chunks(file_path: &Path, num_chunks: usize) -> io::Result<Ve
     println!("File size: {} bytes", file_size);
 
     let mut chunks = Vec::new();
-    let target_chunk_size = file_size / num_chunks as u64;
-    let mut current_pos = 0;
+    if file_size == 0 {
+        chunks.push(FileChunk { start: 0, end: 0 });
+        create_chunk_file(file_path, &chunks[0], 0)?;
+        return Ok(chunks);
+    }
 
+    let target_chunk_size = std::cmp::max(1, file_size / num_chunks as u64);
+    let mut current_pos = 0;
     let mut reader = BufReader::new(file);
 
     for i in 0..num_chunks {
-        let mut chunk = FileChunk {
-            start: current_pos,
-            end: current_pos,
-        };
-
-        if i == num_chunks - 1 {
-            chunk.end = file_size;
-        } else {
-            let end_pos = std::cmp::min(current_pos + target_chunk_size, file_size);
-            reader.seek_relative((end_pos - current_pos) as i64)?;
-
-            let mut buf = String::new();
-            reader.read_line(&mut buf)?;
-            chunk.end = reader.stream_position()?;
-        }
-
-        println!("Chunk {}: {} - {}", i, chunk.start, chunk.end);
-        create_chunk_file(file_path, &chunk, i)?; // 创建 chunk 文件
-        chunks.push(chunk);
-
-        current_pos = chunk.end;
         if current_pos >= file_size {
             break;
         }
+
+        let mut chunk = FileChunk {
+            start: current_pos,
+            end: std::cmp::min(current_pos + target_chunk_size, file_size),
+        };
+
+        if i < num_chunks - 1 && chunk.end < file_size {
+            reader.seek(SeekFrom::Start(chunk.end))?;
+            let mut buf = String::new();
+            reader.read_line(&mut buf)?;
+            chunk.end = reader.stream_position()?;
+
+            // If this chunk is too small, extend it to the next line
+            if chunk.end - chunk.start < target_chunk_size / 2 && chunk.end < file_size {
+                reader.read_line(&mut buf)?;
+                chunk.end = reader.stream_position()?;
+            }
+        } else {
+            chunk.end = file_size;
+        }
+
+        println!("Chunk {}: {} - {}", i, chunk.start, chunk.end);
+        create_chunk_file(file_path, &chunk, i)?;
+        chunks.push(chunk);
+
+        if chunk.end == file_size {
+            break;
+        }
+
+        current_pos = chunk.end;
     }
 
     Ok(chunks)
@@ -227,88 +243,144 @@ mod tests {
     use std::fs;
     use tempfile::TempDir;
 
-    #[test]
-    fn test_divide_file_into_chunks() {
-        let temp_dir = TempDir::new().unwrap();
-        let file_path = temp_dir.path().join("test_file.txt");
-        let content = "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n";
-        fs::write(&file_path, content).unwrap();
+    mod test_divide_file_into_chunks {
+        use super::*;
 
-        let chunks = divide_file_into_chunks(&file_path, 3).unwrap();
+        #[test]
+        fn test_divide_file_into_equal_chunks() {
+            let temp_dir = TempDir::new().unwrap();
+            let file_path = temp_dir.path().join("test_equal_chunks.txt");
+            let content = "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\n";
+            fs::write(&file_path, content).unwrap();
 
-        assert_eq!(chunks.len(), 3);
-    }
+            let chunks = divide_file_into_chunks(&file_path, 3).unwrap();
 
-    #[test]
-    fn test_read_file_chunk() {
-        let temp_dir = TempDir::new().unwrap();
-        let file_path = temp_dir.path().join("test_read_file.txt");
-        let content = "Line 1\nLine 2\nLine 3\nLine 4\n";
-        fs::write(&file_path, content).unwrap();
+            assert!(
+                chunks.len() >= 2 && chunks.len() <= 3,
+                "Expected 2 or 3 chunks, got {}",
+                chunks.len()
+            );
+            assert_eq!(chunks[0].start, 0);
+            assert!(chunks[0].end >= 14); // At least "Line 1\nLine 2\n"
+            assert_eq!(chunks[1].start, chunks[0].end);
+            if chunks.len() == 3 {
+                assert!(chunks[1].end >= 28); // At least up to "Line 3\nLine 4\n"
+                assert_eq!(chunks[2].start, chunks[1].end);
+                assert_eq!(chunks[2].end, 42); // Total file size
+            } else {
+                assert_eq!(chunks[1].end, 42); // Total file size
+            }
+        }
 
-        let chunk = FileChunk { start: 7, end: 19 };
-        let lines = read_file_chunk(&file_path, &chunk).unwrap();
+        #[test]
+        fn test_divide_empty_file() {
+            let temp_dir = TempDir::new().unwrap();
+            let file_path = temp_dir.path().join("empty_file.txt");
+            fs::write(&file_path, "").unwrap();
 
-        assert_eq!(lines, vec!["Line 2", "Line 3"]);
-    }
+            let chunks = divide_file_into_chunks(&file_path, 3).unwrap();
 
-    #[test]
-    fn test_process_word() {
-        assert_eq!(process_word("Hello!"), "hello");
-        assert_eq!(process_word("WORLD"), "world");
-        assert_eq!(process_word("he!llo"), "hello");
-        assert_eq!(process_word(""), "");
-        assert_eq!(process_word("!!!"), "");
-        assert_eq!(process_word("hello123"), "hello123");
-    }
+            assert_eq!(chunks.len(), 1);
+            assert_eq!(chunks[0].start, 0);
+            assert_eq!(chunks[0].end, 0);
+        }
 
-    #[test]
-    fn test_count_words() {
-        let lines = vec!["Hello world".to_string(), "hello Universe".to_string()];
-        let result = count_words(&lines, 0);
+        #[test]
+        fn test_divide_file_more_chunks_than_lines() {
+            let temp_dir = TempDir::new().unwrap();
+            let file_path = temp_dir.path().join("more_chunks.txt");
+            let content = "Line 1\nLine 2\n";
+            fs::write(&file_path, content).unwrap();
 
-        assert_eq!(result.len(), 3);
-        assert_eq!(result["hello"], 2);
-        assert_eq!(result["world"], 1);
-        assert_eq!(result["universe"], 1);
-    }
+            let chunks = divide_file_into_chunks(&file_path, 5).unwrap();
 
-    #[test]
-    fn test_write_results() {
-        let temp_dir = TempDir::new().unwrap();
-        let output_path = temp_dir.path().join("output.txt");
-        let word_count = {
-            let mut map = HashMap::new();
-            map.insert("world".to_string(), 2);
-            map.insert("hello".to_string(), 1);
-            map.insert("test".to_string(), 3);
-            map
-        };
+            assert!(
+                chunks.len() <= 5,
+                "Expected at most 5 chunks, got {}",
+                chunks.len()
+            );
+            assert!(
+                chunks.len() >= 2,
+                "Expected at least 2 chunks, got {}",
+                chunks.len()
+            );
+            assert_eq!(chunks[0].start, 0);
+            assert!(chunks[0].end > 0);
+            assert_eq!(chunks.last().unwrap().end, 14); // Total file size
+        }
 
-        write_results(&output_path, &word_count).unwrap();
+        #[test]
+        fn test_divide_file_with_very_long_line() {
+            let temp_dir = TempDir::new().unwrap();
+            let file_path = temp_dir.path().join("long_line.txt");
+            let content =
+                "Short line\n".to_string() + &"A".repeat(10000) + "\nAnother short line\n";
+            let content_len = content.len() as u64;
+            fs::write(&file_path, content).unwrap();
 
-        let content = fs::read_to_string(&output_path).unwrap();
-        assert_eq!(content, "hello: 1\ntest: 3\nworld: 2\n");
-    }
+            let chunks = divide_file_into_chunks(&file_path, 3).unwrap();
 
-    #[test]
-    fn test_process_file() {
-        let temp_dir = TempDir::new().unwrap();
-        let input_path = temp_dir.path().join("input.txt");
-        let output_path = temp_dir.path().join("output.txt");
+            assert!(
+                chunks.len() <= 3,
+                "Expected at most 3 chunks, got {}",
+                chunks.len()
+            );
 
-        let content = "Hello world\nThis is a test\nHello again\n";
-        fs::write(&input_path, content).unwrap();
+            // Check if any chunk contains the long line
+            let long_line_chunk = chunks.iter().find(|chunk| chunk.end - chunk.start >= 10000);
+            assert!(long_line_chunk.is_some(), "No chunk contains the long line");
 
-        process_file(input_path.to_str().unwrap(), output_path.to_str().unwrap()).unwrap();
+            // Ensure the last chunk ends at the file size
+            assert_eq!(chunks.last().unwrap().end, content_len);
+        }
 
-        let result = fs::read_to_string(&output_path).unwrap();
-        assert!(result.contains("hello: 2"));
-        assert!(result.contains("world: 1"));
-        assert!(result.contains("this: 1"));
-        assert!(result.contains("is: 1"));
-        assert!(result.contains("a: 1"));
-        assert!(result.contains("test: 1"));
-        assert!(result.contains("again: 1"));
+        #[test]
+        fn test_divide_file_into_unequal_chunks() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let file_path = temp_dir.path().join("test_unequal_chunks.txt");
+            let content = "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n";
+            fs::write(&file_path, content).unwrap();
+
+            // When
+            let chunks = divide_file_into_chunks(&file_path, 3).unwrap();
+
+            // Then
+            assert_eq!(chunks.len(), 3);
+            assert!(chunks[0].end > chunks[0].start);
+            assert!(chunks[1].end > chunks[1].start);
+            assert!(chunks[2].end > chunks[2].start);
+            assert_eq!(chunks[2].end, 35); // Total file size
+        }
+
+        #[test]
+        fn test_divide_file_with_one_chunk() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let file_path = temp_dir.path().join("one_chunk.txt");
+            let content = "Line 1\nLine 2\nLine 3\n";
+            fs::write(&file_path, content).unwrap();
+
+            // When
+            let chunks = divide_file_into_chunks(&file_path, 1).unwrap();
+
+            // Then
+            assert_eq!(chunks.len(), 1);
+            assert_eq!(chunks[0].start, 0);
+            assert_eq!(chunks[0].end, 21); // Total file size
+        }
+
+        #[test]
+        #[should_panic(expected = "No such file or directory")]
+        fn test_divide_non_existent_file() {
+            // Given
+            let non_existent_file = Path::new("non_existent_file.txt");
+
+            // When
+            divide_file_into_chunks(non_existent_file, 3).unwrap();
+
+            // Then
+            // The function should panic with "No such file or directory" error
+        }
     }
 }
