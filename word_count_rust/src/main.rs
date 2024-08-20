@@ -608,4 +608,143 @@ mod tests {
             assert_eq!(result, "mixedcaseword");
         }
     }
+    mod test_count_words {
+        use super::*;
+
+        #[test]
+        fn test_count_words_with_simple_sentence() {
+            // Given
+            let lines = vec!["The quick brown fox".to_string()];
+
+            // When
+            let result = count_words(&lines, 0);
+
+            // Then
+            assert_eq!(result.len(), 4);
+            assert_eq!(result.get("the"), Some(&1));
+            assert_eq!(result.get("quick"), Some(&1));
+            assert_eq!(result.get("brown"), Some(&1));
+            assert_eq!(result.get("fox"), Some(&1));
+        }
+
+        #[test]
+        fn test_count_words_with_repeated_words() {
+            // Given
+            let lines = vec!["The quick quick fox".to_string()];
+
+            // When
+            let result = count_words(&lines, 0);
+
+            // Then
+            assert_eq!(result.len(), 3);
+            assert_eq!(result.get("the"), Some(&1));
+            assert_eq!(result.get("quick"), Some(&2));
+            assert_eq!(result.get("fox"), Some(&1));
+        }
+
+        #[test]
+        fn test_count_words_with_punctuation() {
+            // Given
+            let lines = vec!["Hello, world! How are you?".to_string()];
+
+            // When
+            let result = count_words(&lines, 0);
+
+            // Then
+            assert_eq!(result.len(), 5);
+            assert_eq!(result.get("hello"), Some(&1));
+            assert_eq!(result.get("world"), Some(&1));
+            assert_eq!(result.get("how"), Some(&1));
+            assert_eq!(result.get("are"), Some(&1));
+            assert_eq!(result.get("you"), Some(&1));
+        }
+
+        #[test]
+        fn test_count_words_with_mixed_case() {
+            // Given
+            let lines = vec!["The Quick BROWN fox".to_string()];
+
+            // When
+            let result = count_words(&lines, 0);
+
+            // Then
+            assert_eq!(result.len(), 4);
+            assert_eq!(result.get("the"), Some(&1));
+            assert_eq!(result.get("quick"), Some(&1));
+            assert_eq!(result.get("brown"), Some(&1));
+            assert_eq!(result.get("fox"), Some(&1));
+        }
+
+        #[test]
+        fn test_count_words_with_empty_lines() {
+            // Given
+            let lines = vec!["".to_string(), "Hello world".to_string(), "".to_string()];
+
+            // When
+            let result = count_words(&lines, 0);
+
+            // Then
+            assert_eq!(result.len(), 2);
+            assert_eq!(result.get("hello"), Some(&1));
+            assert_eq!(result.get("world"), Some(&1));
+        }
+
+        #[test]
+        fn test_count_words_with_multiple_lines() {
+            // Given
+            let lines = vec![
+                "The quick brown".to_string(),
+                "fox jumps over".to_string(),
+                "the lazy dog".to_string(),
+            ];
+
+            // When
+            let result = count_words(&lines, 0);
+
+            // Then
+            assert_eq!(result.len(), 8);
+            assert_eq!(result.get("the"), Some(&2));
+            assert_eq!(result.get("quick"), Some(&1));
+            assert_eq!(result.get("brown"), Some(&1));
+            assert_eq!(result.get("fox"), Some(&1));
+            assert_eq!(result.get("jumps"), Some(&1));
+            assert_eq!(result.get("over"), Some(&1));
+            assert_eq!(result.get("lazy"), Some(&1));
+            assert_eq!(result.get("dog"), Some(&1));
+        }
+
+        #[test]
+        fn test_count_words_with_numbers() {
+            // Given
+            let lines = vec!["There are 3 apples and 2 oranges".to_string()];
+
+            // When
+            let result = count_words(&lines, 0);
+
+            // Then
+            assert_eq!(result.len(), 7);
+            assert_eq!(result.get("there"), Some(&1));
+            assert_eq!(result.get("are"), Some(&1));
+            assert_eq!(result.get("3"), Some(&1));
+            assert_eq!(result.get("apples"), Some(&1));
+            assert_eq!(result.get("and"), Some(&1));
+            assert_eq!(result.get("2"), Some(&1));
+            assert_eq!(result.get("oranges"), Some(&1));
+        }
+
+        #[test]
+        fn test_count_words_with_special_characters() {
+            // Given
+            let lines = vec!["Hello@world! How_are you?".to_string()];
+
+            // When
+            let result = count_words(&lines, 0);
+
+            // Then
+            assert_eq!(result.len(), 3);
+            assert_eq!(result.get("helloworld"), Some(&1));
+            assert_eq!(result.get("howare"), Some(&1));
+            assert_eq!(result.get("you"), Some(&1));
+        }
+    }
 }
