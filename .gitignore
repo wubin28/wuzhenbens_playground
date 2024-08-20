@@ -5,3 +5,6 @@
 **/*.iml
 
 **/app/bin/
+
+**/input_chunk_*.txt
+**/output_*.txt
