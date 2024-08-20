@@ -265,10 +265,9 @@ std::optional<std::string> processFile(std::string_view inputFile,
     threadSafeOutput("Starting file processing");
     auto chunks = divideFileIntoChunks(inputPath, NUM_THREADS);
     std::vector<std::thread> threads;
-    std::vector<std::unordered_map<std::string, std::size_t>> threadResults(
-        NUM_THREADS);
+    std::vector<std::unordered_map<std::string, std::size_t>> threadResults(chunks.size());
 
-    for (std::size_t i = 0; i < NUM_THREADS; ++i) {
+    for (std::size_t i = 0; i < chunks.size(); ++i) {
       threads.emplace_back(
           [&, i]()
           {
