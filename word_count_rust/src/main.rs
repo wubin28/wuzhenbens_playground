@@ -520,4 +520,92 @@ mod tests {
             // The function should panic with "No such file or directory" error
         }
     }
+
+    mod test_process_word {
+        use super::*;
+
+        #[test]
+        fn test_process_word_removes_punctuation() {
+            // Given
+            let input = "hello,world!";
+
+            // When
+            let result = process_word(input);
+
+            // Then
+            assert_eq!(result, "helloworld");
+        }
+
+        #[test]
+        fn test_process_word_converts_to_lowercase() {
+            // Given
+            let input = "HeLLo";
+
+            // When
+            let result = process_word(input);
+
+            // Then
+            assert_eq!(result, "hello");
+        }
+
+        #[test]
+        fn test_process_word_handles_empty_string() {
+            // Given
+            let input = "";
+
+            // When
+            let result = process_word(input);
+
+            // Then
+            assert_eq!(result, "");
+        }
+
+        #[test]
+        fn test_process_word_handles_only_punctuation() {
+            // Given
+            let input = "!@#$%^&*()";
+
+            // When
+            let result = process_word(input);
+
+            // Then
+            assert_eq!(result, "");
+        }
+
+        #[test]
+        fn test_process_word_preserves_numbers() {
+            // Given
+            let input = "hello123world";
+
+            // When
+            let result = process_word(input);
+
+            // Then
+            assert_eq!(result, "hello123world");
+        }
+
+        #[test]
+        fn test_process_word_handles_unicode() {
+            // Given
+            let input = "Hé!!ô, Wörld!";
+
+            // When
+            let result = process_word(input);
+
+            // Then
+            assert_eq!(result, "héô wörld");
+        }
+
+        #[test]
+        fn test_process_word_handles_mixed_case_and_punctuation() {
+            // Given
+            let input = "MiXeD.CaSe!WoRd";
+
+            // When
+            let result = process_word(input);
+
+            // Then
+            assert_eq!(result, "mixedcaseword");
+        }
+    }
 }
