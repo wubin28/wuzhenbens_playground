@@ -35,8 +35,8 @@ def generate_sentence():
 
     return sentence
 
-# 生成大约 0.2 MB 的文本
-target_size = 0.2 * 1024 * 1024  # 0.2 MB
+# 生成大约 3 MB 的文本
+target_size = 3 * 1024 * 1024  # 3 MB
 current_size = 0
 with open("input.txt", "w") as f:
     while current_size < target_size:
