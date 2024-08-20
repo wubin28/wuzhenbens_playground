@@ -911,4 +911,142 @@ mod tests {
             }
         }
     }
+
+    mod test_create_chunk_file {
+        use super::*;
+
+        #[test]
+        fn test_create_chunk_file_with_non_empty_chunk() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let input_path = temp_dir.path().join("input.txt");
+            fs::write(&input_path, "Hello, World!").unwrap();
+            let chunk = FileChunk { start: 0, end: 5 };
+
+            // When
+            create_chunk_file(&input_path, &chunk, 0).unwrap();
+
+            // Then
+            let chunk_path = PathBuf::from("input_chunk_0.txt");
+            assert!(chunk_path.exists());
+            let content = fs::read_to_string(&chunk_path).unwrap();
+            assert_eq!(content, "Hello");
+            fs::remove_file(chunk_path).unwrap();
+        }
+
+        #[test]
+        fn test_create_chunk_file_with_empty_chunk() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let input_path = temp_dir.path().join("input.txt");
+            fs::write(&input_path, "Hello, World!").unwrap();
+            let chunk = FileChunk { start: 5, end: 5 };
+
+            // When
+            create_chunk_file(&input_path, &chunk, 1).unwrap();
+
+            // Then
+            let chunk_path = PathBuf::from("input_chunk_1.txt");
+            assert!(chunk_path.exists());
+            let content = fs::read_to_string(&chunk_path).unwrap();
+            assert_eq!(content, "");
+            fs::remove_file(chunk_path).unwrap();
+        }
+
+        #[test]
+        fn test_create_chunk_file_with_chunk_larger_than_buffer() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let input_path = temp_dir.path().join("input.txt");
+            let large_content = "A".repeat(BUFFER_SIZE * 2);
+            fs::write(&input_path, &large_content).unwrap();
+            let chunk = FileChunk {
+                start: 0,
+                end: (BUFFER_SIZE * 2) as u64,
+            };
+
+            // When
+            create_chunk_file(&input_path, &chunk, 2).unwrap();
+
+            // Then
+            let chunk_path = PathBuf::from("input_chunk_2.txt");
+            assert!(chunk_path.exists());
+            let content = fs::read_to_string(&chunk_path).unwrap();
+            assert_eq!(content, large_content);
+            fs::remove_file(chunk_path).unwrap();
+        }
+
+        #[test]
+        fn test_create_chunk_file_with_chunk_at_end_of_file() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let input_path = temp_dir.path().join("input.txt");
+            fs::write(&input_path, "Hello, World!").unwrap();
+            let chunk = FileChunk { start: 7, end: 13 };
+
+            // When
+            create_chunk_file(&input_path, &chunk, 3).unwrap();
+
+            // Then
+            let chunk_path = PathBuf::from("input_chunk_3.txt");
+            assert!(chunk_path.exists());
+            let content = fs::read_to_string(&chunk_path).unwrap();
+            assert_eq!(content, "World!");
+            fs::remove_file(chunk_path).unwrap();
+        }
+
+        #[test]
+        fn test_create_chunk_file_with_non_existent_input_file() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let input_path = temp_dir.path().join("non_existent.txt");
+            let chunk = FileChunk { start: 0, end: 5 };
+
+            // When
+            let result = create_chunk_file(&input_path, &chunk, 4);
+
+            // Then
+            assert!(result.is_err());
+            assert_eq!(result.unwrap_err().kind(), std::io::ErrorKind::NotFound);
+        }
+
+        #[test]
+        fn test_create_chunk_file_with_invalid_chunk_range() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let input_path = temp_dir.path().join("input.txt");
+            fs::write(&input_path, "Hello, World!").unwrap();
+            let chunk = FileChunk { start: 10, end: 5 };
+
+            // When
+            create_chunk_file(&input_path, &chunk, 5).unwrap();
+
+            // Then
+            let chunk_path = PathBuf::from("input_chunk_5.txt");
+            assert!(chunk_path.exists());
+            let content = fs::read_to_string(&chunk_path).unwrap();
+            assert_eq!(content, "");
+            fs::remove_file(chunk_path).unwrap();
+        }
+
+        #[test]
+        fn test_create_chunk_file_overwrites_existing_file() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let input_path = temp_dir.path().join("input.txt");
+            fs::write(&input_path, "Hello, World!").unwrap();
+            let chunk_path = PathBuf::from("input_chunk_6.txt");
+            fs::write(&chunk_path, "Old content").unwrap();
+            let chunk = FileChunk { start: 0, end: 5 };
+
+            // When
+            create_chunk_file(&input_path, &chunk, 6).unwrap();
+
+            // Then
+            assert!(chunk_path.exists());
+            let content = fs::read_to_string(&chunk_path).unwrap();
+            assert_eq!(content, "Hello");
+            fs::remove_file(chunk_path).unwrap();
+        }
+    }
 }
