@@ -20,7 +20,7 @@ static void threadSafeOutput(const std::string& message)
 }
 
 constexpr std::size_t BUFFER_SIZE = 8192;  // 8 KB buffer
-constexpr std::size_t NUM_THREADS = 4;  // 线程数
+constexpr std::size_t NUM_THREADS = 1;  // 线程数
 }  // namespace
 
 namespace word_count
