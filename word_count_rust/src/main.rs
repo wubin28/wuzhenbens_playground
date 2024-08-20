@@ -747,4 +747,168 @@ mod tests {
             assert_eq!(result.get("you"), Some(&1));
         }
     }
+
+    mod test_write_results {
+        use super::*;
+        use std::collections::HashMap;
+        use std::fs;
+        use tempfile::TempDir;
+
+        #[test]
+        fn test_write_results_with_empty_hashmap() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let output_path = temp_dir.path().join("empty_output.txt");
+            let word_count = HashMap::new();
+
+            // When
+            write_results(&output_path, &word_count).unwrap();
+
+            // Then
+            let content = fs::read_to_string(&output_path).unwrap();
+            assert!(content.is_empty(), "File should be empty");
+        }
+
+        #[test]
+        fn test_write_results_with_single_word() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let output_path = temp_dir.path().join("single_word_output.txt");
+            let mut word_count = HashMap::new();
+            word_count.insert("hello".to_string(), 1);
+
+            // When
+            write_results(&output_path, &word_count).unwrap();
+
+            // Then
+            let content = fs::read_to_string(&output_path).unwrap();
+            assert_eq!(content, "hello: 1\n", "File should contain 'hello: 1'");
+        }
+
+        #[test]
+        fn test_write_results_with_multiple_words() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let output_path = temp_dir.path().join("multiple_words_output.txt");
+            let mut word_count = HashMap::new();
+            word_count.insert("hello".to_string(), 2);
+            word_count.insert("world".to_string(), 1);
+            word_count.insert("rust".to_string(), 3);
+
+            // When
+            write_results(&output_path, &word_count).unwrap();
+
+            // Then
+            let content = fs::read_to_string(&output_path).unwrap();
+            let expected = "hello: 2\nrust: 3\nworld: 1\n";
+            assert_eq!(
+                content, expected,
+                "File content should match expected output"
+            );
+        }
+
+        #[test]
+        fn test_write_results_sorts_words_alphabetically() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let output_path = temp_dir.path().join("sorted_output.txt");
+            let mut word_count = HashMap::new();
+            word_count.insert("zebra".to_string(), 1);
+            word_count.insert("apple".to_string(), 1);
+            word_count.insert("banana".to_string(), 1);
+
+            // When
+            write_results(&output_path, &word_count).unwrap();
+
+            // Then
+            let content = fs::read_to_string(&output_path).unwrap();
+            let expected = "apple: 1\nbanana: 1\nzebra: 1\n";
+            assert_eq!(content, expected, "Words should be sorted alphabetically");
+        }
+
+        #[test]
+        fn test_write_results_handles_numbers() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let output_path = temp_dir.path().join("numbers_output.txt");
+            let mut word_count = HashMap::new();
+            word_count.insert("10".to_string(), 1);
+            word_count.insert("2".to_string(), 1);
+            word_count.insert("1".to_string(), 1);
+
+            // When
+            write_results(&output_path, &word_count).unwrap();
+
+            // Then
+            let content = fs::read_to_string(&output_path).unwrap();
+            let expected = "1: 1\n2: 1\n10: 1\n";
+            assert_eq!(content, expected, "Numbers should be sorted numerically");
+        }
+
+        #[test]
+        fn test_write_results_handles_mixed_content() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let output_path = temp_dir.path().join("mixed_content_output.txt");
+            let mut word_count = HashMap::new();
+            word_count.insert("apple".to_string(), 1);
+            word_count.insert("10".to_string(), 1);
+            word_count.insert("banana".to_string(), 1);
+            word_count.insert("2".to_string(), 1);
+
+            // When
+            write_results(&output_path, &word_count).unwrap();
+
+            // Then
+            let content = fs::read_to_string(&output_path).unwrap();
+            let expected = "2: 1\n10: 1\napple: 1\nbanana: 1\n";
+            assert_eq!(
+                content, expected,
+                "Numbers should be sorted first, then words"
+            );
+        }
+
+        #[test]
+        fn test_write_results_creates_parent_directories() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let output_path = temp_dir.path().join("nested/dir/output.txt");
+            let mut word_count = HashMap::new();
+            word_count.insert("test".to_string(), 1);
+
+            // When
+            write_results(&output_path, &word_count).unwrap();
+
+            // Then
+            assert!(output_path.exists(), "Output file should be created");
+            let content = fs::read_to_string(&output_path).unwrap();
+            assert_eq!(content, "test: 1\n", "File should contain 'test: 1'");
+        }
+
+        #[test]
+        fn test_write_results_fails_on_permission_error() {
+            use std::io::ErrorKind;
+
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let output_path = temp_dir.path().join("readonly_output.txt");
+            fs::write(&output_path, "").unwrap();
+
+            // Make the file read-only
+            let mut perms = fs::metadata(&output_path).unwrap().permissions();
+            perms.set_readonly(true);
+            fs::set_permissions(&output_path, perms).unwrap();
+
+            let word_count = HashMap::new();
+
+            // When
+            let result = write_results(&output_path, &word_count);
+
+            // Then
+            assert!(result.is_err());
+            if let Err(e) = result {
+                assert_eq!(e.kind(), ErrorKind::PermissionDenied);
+            }
+        }
+    }
 }
