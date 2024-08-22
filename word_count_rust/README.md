@@ -5,47 +5,22 @@
 graph TD
     classDef default fill:#2a2a2a,stroke:#e0e0e0,color:#e0e0e0;
 
-    main["main()
-    Program entry point
-    Input: None
-    Output: None"]
+    A["main<br>Entry point of the program<br>Input: None<br>Output: None"]
+    B["process_file<br>Orchestrates the entire file processing workflow<br>Input: &str, &str<br>Output: io::Result<()>"]
+    C["divide_file_into_chunks<br>Divides a file into chunks<br>Input: &Path, usize<br>Output: io::Result<Vec<FileChunk>>"]
+    D["create_chunk_file<br>Creates a file containing a chunk of data<br>Input: &Path, &FileChunk, usize<br>Output: io::Result<()>"]
+    E["read_file_chunk<br>Reads a specific chunk of a file<br>Input: &Path, &FileChunk<br>Output: io::Result<Vec<String>>"]
+    F["count_words<br>Counts occurrences of words in a list of strings<br>Input: &[String], usize<br>Output: HashMap<String, usize>"]
+    G["process_word<br>Processes a single word<br>Input: &str<br>Output: String"]
+    H["write_results<br>Writes word count results to a file<br>Input: &Path, &HashMap<String, usize><br>Output: io::Result<()>"]
 
-    process_file["process_file(input_file: &str, output_file: &str)
-    Orchestrates file processing workflow
-    Input: input_file, output_file paths
-    Output: Result<(), WordCountError>"]
-
-    divide_file_into_chunks["divide_file_into_chunks(file_path: &Path, num_chunks: usize)
-    Divides file into chunks for parallel processing
-    Input: file_path, num_chunks
-    Output: io::Result<Vec<FileChunk>>"]
-
-    read_file_chunk["read_file_chunk(file_path: &Path, chunk: &FileChunk)
-    Reads a specific chunk of a file
-    Input: file_path, chunk
-    Output: io::Result<Vec<String>>"]
-
-    count_words["count_words(lines: &[String], thread_id: usize)
-    Counts word occurrences in given lines
-    Input: lines, thread_id
-    Output: HashMap<String, usize>"]
-
-    process_word["process_word(word: &str)
-    Removes ASCII punctuation and converts to lowercase
-    Input: word
-    Output: String"]
-
-    write_results["write_results(output_path: &Path, word_count: &HashMap<String, usize>)
-    Writes word count results to file
-    Input: output_path, word_count
-    Output: Result<(), WordCountError>"]
-
-    main --> process_file
-    process_file --> divide_file_into_chunks
-    process_file --> read_file_chunk
-    process_file --> count_words
-    process_file --> write_results
-    count_words --> process_word
+    A -->|calls| B
+    B -->|calls| C
+    B -->|calls| E
+    B -->|calls| F
+    B -->|calls| H
+    C -->|calls| D
+    F -->|calls| G
 
     linkStyle default stroke:#e0e0e0,stroke-width:2px
 ```
