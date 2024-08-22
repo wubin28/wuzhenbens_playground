@@ -82,7 +82,7 @@ fn divide_file_into_chunks(file_path: &Path, num_chunks: usize) -> io::Result<Ve
             chunk.end = file_size;
         }
 
-        println!("Chunk {}: {} - {}", i, chunk.start, chunk.end);
+        println!("Chunk: {:?}", chunk);
         create_chunk_file(file_path, &chunk, i)?;
         chunks.push(chunk);
 
