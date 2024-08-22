@@ -171,9 +171,10 @@ fn write_results(output_path: &Path, word_count: &HashMap<String, usize>) -> io:
     let mut sorted_words: Vec<_> = word_count.iter().collect();
     sorted_words.sort_by(|a, b| {
         if a.0.chars().all(|c| c.is_ascii_digit()) && b.0.chars().all(|c| c.is_ascii_digit()) {
-            a.0.parse::<u64>()
-                .unwrap()
-                .cmp(&b.0.parse::<u64>().unwrap())
+            match (a.0.parse::<u64>(), b.0.parse::<u64>()) {
+                (Ok(a_num), Ok(b_num)) => a_num.cmp(&b_num),
+                _ => a.0.cmp(b.0), // 如果任一解析失败，退回到字符串比较
+            }
         } else {
             a.0.cmp(b.0)
         }
@@ -909,6 +910,25 @@ mod tests {
             if let Err(e) = result {
                 assert_eq!(e.kind(), ErrorKind::PermissionDenied);
             }
+        }
+
+        #[test]
+        fn test_write_results_handles_invalid_numbers() {
+            // Given
+            let temp_dir = TempDir::new().unwrap();
+            let output_path = temp_dir.path().join("invalid_numbers_output.txt");
+            let mut word_count = HashMap::new();
+            word_count.insert("123".to_string(), 1);
+            word_count.insert("456".to_string(), 1);
+            word_count.insert("78a".to_string(), 1); // 无效数字
+
+            // When
+            write_results(&output_path, &word_count).unwrap();
+
+            // Then
+            let content = fs::read_to_string(&output_path).unwrap();
+            let expected = "123: 1\n456: 1\n78a: 1\n";
+            assert_eq!(content, expected, "Should handle invalid number gracefully");
         }
     }
 
