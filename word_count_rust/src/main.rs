@@ -208,28 +208,49 @@ fn process_file(input_file: &str, output_file: &str) -> io::Result<()> {
         let word_count = Arc::clone(&word_count);
         let input_path = input_path.to_path_buf();
 
-        let handle = thread::spawn(move || {
+        let handle = thread::spawn(move || -> io::Result<()> {
             println!("Thread {} started", i);
-            let lines = read_file_chunk(&input_path, &chunk).unwrap();
+            let lines = read_file_chunk(&input_path, &chunk)?; // 使用 ? 操作符，遇到错误时立即返回
             println!("Thread {} read {} lines", i, lines.len());
             let thread_word_count = count_words(&lines, i);
 
-            let mut total_word_count = word_count.lock().unwrap();
+            let mut total_word_count = word_count.lock().map_err(|e| {
+                io::Error::new(
+                    io::ErrorKind::Other,
+                    format!("Failed to acquire lock: {}", e),
+                )
+            })?;
+
             for (word, count) in thread_word_count {
                 *total_word_count.entry(word).or_insert(0) += count;
             }
+            Ok(())
         });
 
         handles.push(handle);
     }
 
-    for handle in handles {
-        handle.join().unwrap();
+    for (i, handle) in handles.into_iter().enumerate() {
+        handle.join().map_err(|e| {
+            io::Error::new(
+                io::ErrorKind::Other,
+                format!("Thread {} panicked: {:?}", i, e),
+            )
+        })??;
     }
 
     println!("All threads finished, merging results");
 
-    let total_word_count = Arc::try_unwrap(word_count).unwrap().into_inner().unwrap();
+    let total_word_count = Arc::try_unwrap(word_count)
+        .map_err(|_| io::Error::new(io::ErrorKind::Other, "Failed to unwrap Arc"))?
+        .into_inner()
+        .map_err(|e| {
+            io::Error::new(
+                io::ErrorKind::Other,
+                format!("Failed to get inner value: {}", e),
+            )
+        })?;
+
     write_results(output_path, &total_word_count)?;
 
     let duration = start.elapsed();
@@ -1067,6 +1088,48 @@ mod tests {
             let content = fs::read_to_string(&chunk_path).unwrap();
             assert_eq!(content, "Hello");
             fs::remove_file(chunk_path).unwrap();
+        }
+    }
+
+    mod test_process_file {
+        use super::*;
+
+        #[test]
+        fn test_process_file_with_read_error() {
+            use std::fs::File;
+            use std::io::Write;
+
+            // 创建一个临时目录
+            let temp_dir = TempDir::new().unwrap();
+
+            // 创建输入文件
+            let input_path = temp_dir.path().join("input.txt");
+            let mut file = File::create(&input_path).unwrap();
+            writeln!(file, "Line 1\nLine 2\nLine 3").unwrap();
+
+            // 创建输出文件路径
+            let output_path = temp_dir.path().join("output.txt");
+
+            // 使用一个不存在的文件路径来模拟读取错误
+            let non_existent_input = temp_dir.path().join("non_existent.txt");
+
+            // 处理文件
+            let result = process_file(
+                non_existent_input.to_str().unwrap(),
+                output_path.to_str().unwrap(),
+            );
+
+            // 验证结果
+            assert!(
+                result.is_err(),
+                "Process should fail due to non-existent input file"
+            );
+
+            // 检查输出文件是否不存在（因为处理应该失败）
+            assert!(
+                !output_path.exists(),
+                "Output file should not be created when input file doesn't exist"
+            );
         }
     }
 }
