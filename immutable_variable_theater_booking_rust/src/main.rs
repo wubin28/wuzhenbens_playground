@@ -1,46 +1,31 @@
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::thread;
 
 struct Theater {
-    available_tickets: *mut i32,
+    available_tickets: Mutex<i32>,
 }
-
-unsafe impl Send for Theater {}
-unsafe impl Sync for Theater {}
 
 impl Theater {
     fn new(initial_tickets: i32) -> Self {
         Theater {
-            available_tickets: Box::into_raw(Box::new(initial_tickets)),
+            available_tickets: Mutex::new(initial_tickets),
         }
     }
 
     fn book_ticket(&self) {
-        unsafe {
-            if *self.available_tickets > 0 {
-                // 模拟一些处理时间，增加竞争条件的可能性
-                thread::sleep(std::time::Duration::from_millis(10));
-                *self.available_tickets -= 1;
-                println!(
-                    "Ticket booked. Remaining tickets: {}",
-                    *self.available_tickets
-                );
-            } else {
-                println!("Sorry, no more tickets available.");
-            }
+        let mut tickets = self.available_tickets.lock().unwrap();
+        if *tickets > 0 {
+            // 模拟一些处理时间
+            thread::sleep(std::time::Duration::from_millis(10));
+            *tickets -= 1;
+            println!("Ticket booked. Remaining tickets: {}", *tickets);
+        } else {
+            println!("Sorry, no more tickets available.");
         }
     }
 
     fn get_available_tickets(&self) -> i32 {
-        unsafe { *self.available_tickets }
-    }
-}
-
-impl Drop for Theater {
-    fn drop(&mut self) {
-        unsafe {
-            drop(Box::from_raw(self.available_tickets));
-        }
+        *self.available_tickets.lock().unwrap()
     }
 }
 
@@ -63,19 +48,19 @@ fn main() {
     println!("Final ticket count: {}", theater.get_available_tickets());
 }
 // Output:
+// Ticket booked. Remaining tickets: 9
+// Ticket booked. Remaining tickets: 8
 // Ticket booked. Remaining tickets: 7
 // Ticket booked. Remaining tickets: 6
 // Ticket booked. Remaining tickets: 5
 // Ticket booked. Remaining tickets: 4
 // Ticket booked. Remaining tickets: 3
 // Ticket booked. Remaining tickets: 2
-// Ticket booked. Remaining tickets: 2
-// Ticket booked. Remaining tickets: 1
 // Ticket booked. Remaining tickets: 1
 // Ticket booked. Remaining tickets: 0
-// Ticket booked. Remaining tickets: -1
-// Ticket booked. Remaining tickets: -2
-// Ticket booked. Remaining tickets: -3
-// Ticket booked. Remaining tickets: -4
-// Ticket booked. Remaining tickets: -5
-// Final ticket count: -5
+// Sorry, no more tickets available.
+// Sorry, no more tickets available.
+// Sorry, no more tickets available.
+// Sorry, no more tickets available.
+// Sorry, no more tickets available.
+// Final ticket count: 0
