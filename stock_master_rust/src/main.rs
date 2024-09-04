@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt;
 
 #[derive(Debug, Clone)]
 struct Product {
@@ -24,6 +25,17 @@ struct Order {
     id: u32,
     // <(product_id, quantity)>
     products: Vec<(u32, u32)>,
+}
+
+impl fmt::Display for Order {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "Order ID: {}", self.id)?;
+        writeln!(f, "Products:")?;
+        for (product_id, quantity) in &self.products {
+            writeln!(f, "  Product ID: {}, Quantity: {}", product_id, quantity)?;
+        }
+        Ok(())
+    }
 }
 
 impl Inventory {
@@ -75,6 +87,8 @@ impl OrderProcessor {
     }
 
     fn process_order(&mut self, order: Order) -> Result<(), String> {
+        println!("\nProcessing order:\n{}", order);
+
         for (product_id, quantity) in &order.products {
             let current_quantity = self
                 .inventory
@@ -148,8 +162,8 @@ fn main() {
     };
 
     match order_processor.process_order(order1) {
-        Ok(()) => println!("\nOrder 1 processed successfully"),
-        Err(e) => println!("\nFailed to process order 1: {}", e),
+        Ok(()) => println!("Order 1 processed successfully"),
+        Err(e) => println!("Failed to process order 1: {}", e),
     }
 
     println!("\nInventory after processing order 1:");
@@ -164,8 +178,8 @@ fn main() {
     };
 
     match order_processor.process_order(order2) {
-        Ok(()) => println!("\nOrder 2 processed successfully"),
-        Err(e) => println!("\nFailed to process order 2: {}", e),
+        Ok(()) => println!("Order 2 processed successfully"),
+        Err(e) => println!("Failed to process order 2: {}", e),
     }
 
     println!("\nFinal inventory:");
@@ -186,3 +200,51 @@ fn main() {
 
     println!("\nEnd of main function, all remaining products will be dropped.");
 }
+// Output
+// Adding product to inventory: Laptop (ID: 1)
+// Adding product to inventory: Smartphone (ID: 2)
+// Adding product to inventory: Tablet (ID: 3)
+
+// Initial inventory:
+// Product: Product { id: 1, name: "Laptop", price: 999.99 }, Quantity: 10
+// Product: Product { id: 2, name: "Smartphone", price: 499.99 }, Quantity: 20
+// Product: Product { id: 3, name: "Tablet", price: 299.99 }, Quantity: 15
+
+// Demonstrating Clone:
+// Original product: Product { id: 1, name: "Laptop", price: 999.99 }
+// Cloned product: Product { id: 1, name: "Laptop", price: 999.99 }
+// Dropping product: Laptop (ID: 1)
+
+// Processing order:
+// Order ID: 1
+// Products:
+//   Product ID: 1, Quantity: 2
+//   Product ID: 2, Quantity: 3
+
+// Order 1 processed successfully
+
+// Inventory after processing order 1:
+// Product: Product { id: 1, name: "Laptop", price: 999.99 }, Quantity: 8
+// Product: Product { id: 2, name: "Smartphone", price: 499.99 }, Quantity: 17
+// Product: Product { id: 3, name: "Tablet", price: 299.99 }, Quantity: 15
+
+// Processing order:
+// Order ID: 2
+// Products:
+//   Product ID: 3, Quantity: 20
+
+// Failed to process order 2: Insufficient stock for product 3
+
+// Final inventory:
+// Product: Product { id: 1, name: "Laptop", price: 999.99 }, Quantity: 8
+// Product: Product { id: 2, name: "Smartphone", price: 499.99 }, Quantity: 17
+// Product: Product { id: 3, name: "Tablet", price: 299.99 }, Quantity: 15
+
+// Demonstrating Drop:
+// Created product: Product { id: 4, name: "Headphones", price: 99.99 }
+// Dropping product: Headphones (ID: 4)
+
+// End of main function, all remaining products will be dropped.
+// Dropping product: Laptop (ID: 1)
+// Dropping product: Smartphone (ID: 2)
+// Dropping product: Tablet (ID: 3)
