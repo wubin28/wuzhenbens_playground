@@ -47,8 +47,8 @@ impl Inventory {
 
     fn add_product(&mut self, product: Product, quantity: u32) {
         println!(
-            "Adding product to inventory: {} (ID: {})",
-            product.name, product.id
+            "Adding product to inventory: {} (ID: {}, Quantity: {})",
+            product.name, product.id, quantity
         );
         self.products.insert(product.id, (product, quantity));
     }
@@ -201,14 +201,14 @@ fn main() {
     println!("\nEnd of main function, all remaining products will be dropped.");
 }
 // Output
-// Adding product to inventory: Laptop (ID: 1)
-// Adding product to inventory: Smartphone (ID: 2)
-// Adding product to inventory: Tablet (ID: 3)
+// Adding product to inventory: Laptop (ID: 1, Quantity: 10)
+// Adding product to inventory: Smartphone (ID: 2, Quantity: 20)
+// Adding product to inventory: Tablet (ID: 3, Quantity: 15)
 
 // Initial inventory:
 // Product: Product { id: 1, name: "Laptop", price: 999.99 }, Quantity: 10
-// Product: Product { id: 2, name: "Smartphone", price: 499.99 }, Quantity: 20
 // Product: Product { id: 3, name: "Tablet", price: 299.99 }, Quantity: 15
+// Product: Product { id: 2, name: "Smartphone", price: 499.99 }, Quantity: 20
 
 // Demonstrating Clone:
 // Original product: Product { id: 1, name: "Laptop", price: 999.99 }
@@ -225,8 +225,8 @@ fn main() {
 
 // Inventory after processing order 1:
 // Product: Product { id: 1, name: "Laptop", price: 999.99 }, Quantity: 8
-// Product: Product { id: 2, name: "Smartphone", price: 499.99 }, Quantity: 17
 // Product: Product { id: 3, name: "Tablet", price: 299.99 }, Quantity: 15
+// Product: Product { id: 2, name: "Smartphone", price: 499.99 }, Quantity: 17
 
 // Processing order:
 // Order ID: 2
@@ -237,8 +237,8 @@ fn main() {
 
 // Final inventory:
 // Product: Product { id: 1, name: "Laptop", price: 999.99 }, Quantity: 8
-// Product: Product { id: 2, name: "Smartphone", price: 499.99 }, Quantity: 17
 // Product: Product { id: 3, name: "Tablet", price: 299.99 }, Quantity: 15
+// Product: Product { id: 2, name: "Smartphone", price: 499.99 }, Quantity: 17
 
 // Demonstrating Drop:
 // Created product: Product { id: 4, name: "Headphones", price: 99.99 }
@@ -246,5 +246,5 @@ fn main() {
 
 // End of main function, all remaining products will be dropped.
 // Dropping product: Laptop (ID: 1)
-// Dropping product: Smartphone (ID: 2)
 // Dropping product: Tablet (ID: 3)
+// Dropping product: Smartphone (ID: 2)
