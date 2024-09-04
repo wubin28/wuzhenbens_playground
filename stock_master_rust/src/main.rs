@@ -9,13 +9,16 @@ struct Product {
 
 #[derive(Debug)]
 struct Inventory {
+    // <key, value>: <product_id, (product, quantity)>
     products: HashMap<u32, (Product, u32)>,
 }
 
 #[derive(Debug)]
 struct Order {
+    // order_id
     id: u32,
-    products: Vec<(u32, u32)>, // (product_id, quantity)
+    // <(product_id, quantity)>
+    products: Vec<(u32, u32)>,
 }
 
 impl Inventory {
