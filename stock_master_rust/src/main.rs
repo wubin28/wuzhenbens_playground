@@ -115,7 +115,7 @@ fn main() {
     );
 
     println!("Initial inventory:");
-    for (id, (product, quantity)) in &inventory.products {
+    for (_id, (product, quantity)) in &inventory.products {
         println!("Product: {:?}, Quantity: {}", product, quantity);
     }
 
@@ -133,7 +133,7 @@ fn main() {
     }
 
     println!("\nInventory after processing order 1:");
-    for (id, (product, quantity)) in &order_processor.inventory.products {
+    for (_id, (product, quantity)) in &order_processor.inventory.products {
         println!("Product: {:?}, Quantity: {}", product, quantity);
     }
 
@@ -149,7 +149,24 @@ fn main() {
     }
 
     println!("\nFinal inventory:");
-    for (id, (product, quantity)) in &order_processor.inventory.products {
+    for (_id, (product, quantity)) in &order_processor.inventory.products {
         println!("Product: {:?}, Quantity: {}", product, quantity);
     }
 }
+// Output:
+// Initial inventory:
+// Product: Product { id: 2, name: "Smartphone", price: 499.99 }, Quantity: 20
+// Product: Product { id: 1, name: "Laptop", price: 999.99 }, Quantity: 10
+// Product: Product { id: 3, name: "Tablet", price: 299.99 }, Quantity: 15
+// Order 1 processed successfully
+
+// Inventory after processing order 1:
+// Product: Product { id: 2, name: "Smartphone", price: 499.99 }, Quantity: 17
+// Product: Product { id: 1, name: "Laptop", price: 999.99 }, Quantity: 8
+// Product: Product { id: 3, name: "Tablet", price: 299.99 }, Quantity: 15
+// Failed to process order 2: Insufficient stock for product 3
+
+// Final inventory:
+// Product: Product { id: 2, name: "Smartphone", price: 499.99 }, Quantity: 17
+// Product: Product { id: 1, name: "Laptop", price: 999.99 }, Quantity: 8
+// Product: Product { id: 3, name: "Tablet", price: 299.99 }, Quantity: 15
