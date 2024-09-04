@@ -7,6 +7,12 @@ struct Product {
     price: f64,
 }
 
+impl Drop for Product {
+    fn drop(&mut self) {
+        println!("Dropping product: {} (ID: {})", self.name, self.id);
+    }
+}
+
 #[derive(Debug)]
 struct Inventory {
     // <key, value>: <product_id, (product, quantity)>
@@ -15,7 +21,6 @@ struct Inventory {
 
 #[derive(Debug)]
 struct Order {
-    // order_id
     id: u32,
     // <(product_id, quantity)>
     products: Vec<(u32, u32)>,
@@ -29,6 +34,10 @@ impl Inventory {
     }
 
     fn add_product(&mut self, product: Product, quantity: u32) {
+        println!(
+            "Adding product to inventory: {} (ID: {})",
+            product.name, product.id
+        );
         self.products.insert(product.id, (product, quantity));
     }
 
@@ -117,9 +126,17 @@ fn main() {
         15,
     );
 
-    println!("Initial inventory:");
+    println!("\nInitial inventory:");
     for (_id, (product, quantity)) in &inventory.products {
         println!("Product: {:?}, Quantity: {}", product, quantity);
+    }
+
+    // 演示复制（Clone）
+    println!("\nDemonstrating Clone:");
+    if let Some(product) = inventory.get_product(1) {
+        let cloned_product = product.clone();
+        println!("Original product: {:?}", product);
+        println!("Cloned product: {:?}", cloned_product);
     }
 
     let mut order_processor = OrderProcessor::new(inventory);
@@ -131,8 +148,8 @@ fn main() {
     };
 
     match order_processor.process_order(order1) {
-        Ok(()) => println!("Order 1 processed successfully"),
-        Err(e) => println!("Failed to process order 1: {}", e),
+        Ok(()) => println!("\nOrder 1 processed successfully"),
+        Err(e) => println!("\nFailed to process order 1: {}", e),
     }
 
     println!("\nInventory after processing order 1:");
@@ -147,29 +164,25 @@ fn main() {
     };
 
     match order_processor.process_order(order2) {
-        Ok(()) => println!("Order 2 processed successfully"),
-        Err(e) => println!("Failed to process order 2: {}", e),
+        Ok(()) => println!("\nOrder 2 processed successfully"),
+        Err(e) => println!("\nFailed to process order 2: {}", e),
     }
 
     println!("\nFinal inventory:");
     for (_id, (product, quantity)) in &order_processor.inventory.products {
         println!("Product: {:?}, Quantity: {}", product, quantity);
     }
+
+    // 演示丢弃（Drop）
+    println!("\nDemonstrating Drop:");
+    {
+        let product_to_drop = Product {
+            id: 4,
+            name: "Headphones".to_string(),
+            price: 99.99,
+        };
+        println!("Created product: {:?}", product_to_drop);
+    } // product_to_drop 在这里离开作用域，将被丢弃
+
+    println!("\nEnd of main function, all remaining products will be dropped.");
 }
-// Output:
-// Initial inventory:
-// Product: Product { id: 2, name: "Smartphone", price: 499.99 }, Quantity: 20
-// Product: Product { id: 1, name: "Laptop", price: 999.99 }, Quantity: 10
-// Product: Product { id: 3, name: "Tablet", price: 299.99 }, Quantity: 15
-// Order 1 processed successfully
-
-// Inventory after processing order 1:
-// Product: Product { id: 2, name: "Smartphone", price: 499.99 }, Quantity: 17
-// Product: Product { id: 1, name: "Laptop", price: 999.99 }, Quantity: 8
-// Product: Product { id: 3, name: "Tablet", price: 299.99 }, Quantity: 15
-// Failed to process order 2: Insufficient stock for product 3
-
-// Final inventory:
-// Product: Product { id: 2, name: "Smartphone", price: 499.99 }, Quantity: 17
-// Product: Product { id: 1, name: "Laptop", price: 999.99 }, Quantity: 8
-// Product: Product { id: 3, name: "Tablet", price: 299.99 }, Quantity: 15
