@@ -209,6 +209,159 @@ mod tests {
             assert_eq!(inventory.get_quantity(product_id), Some(new_quantity));
         }
     }
+
+    mod order_processor_tests {
+        use super::*;
+
+        fn create_test_inventory() -> Inventory {
+            let mut inventory = Inventory::new();
+            inventory.add_product(
+                Product {
+                    id: 1,
+                    name: "Test Product 1".to_string(),
+                    price: 10.0,
+                },
+                10,
+            );
+            inventory.add_product(
+                Product {
+                    id: 2,
+                    name: "Test Product 2".to_string(),
+                    price: 20.0,
+                },
+                5,
+            );
+            inventory
+        }
+
+        #[test]
+        fn process_order_succeeds_with_sufficient_inventory() {
+            // Given
+            let inventory = create_test_inventory();
+            let mut order_processor = OrderProcessor::new(inventory);
+            let order = Order {
+                id: 1,
+                products: vec![(1, 5), (2, 2)],
+            };
+
+            // When
+            let result = order_processor.process_order(order);
+
+            // Then
+            assert!(result.is_ok());
+            assert_eq!(order_processor.inventory.get_quantity(1), Some(5));
+            assert_eq!(order_processor.inventory.get_quantity(2), Some(3));
+            assert_eq!(order_processor.orders.len(), 1);
+        }
+
+        #[test]
+        fn process_order_fails_with_insufficient_inventory() {
+            // Given
+            let inventory = create_test_inventory();
+            let mut order_processor = OrderProcessor::new(inventory);
+            let order = Order {
+                id: 1,
+                products: vec![(1, 11)], // Requesting more than available
+            };
+
+            // When
+            let result = order_processor.process_order(order);
+
+            // Then
+            assert!(result.is_err());
+            assert_eq!(
+                result.unwrap_err(),
+                "Insufficient stock for product 1".to_string()
+            );
+            assert_eq!(order_processor.inventory.get_quantity(1), Some(10)); // Inventory unchanged
+            assert_eq!(order_processor.orders.len(), 0);
+        }
+
+        #[test]
+        fn process_order_fails_with_non_existent_product() {
+            // Given
+            let inventory = create_test_inventory();
+            let mut order_processor = OrderProcessor::new(inventory);
+            let order = Order {
+                id: 1,
+                products: vec![(3, 1)], // Product 3 doesn't exist
+            };
+
+            // When
+            let result = order_processor.process_order(order);
+
+            // Then
+            assert!(result.is_err());
+            assert_eq!(
+                result.unwrap_err(),
+                "Product with id 3 not found".to_string()
+            );
+            assert_eq!(order_processor.orders.len(), 0);
+        }
+
+        #[test]
+        fn process_order_succeeds_with_zero_quantity() {
+            // Given
+            let inventory = create_test_inventory();
+            let mut order_processor = OrderProcessor::new(inventory);
+            let order = Order {
+                id: 1,
+                products: vec![(1, 0)],
+            };
+
+            // When
+            let result = order_processor.process_order(order);
+
+            // Then
+            assert!(result.is_ok());
+            assert_eq!(order_processor.inventory.get_quantity(1), Some(10)); // Inventory unchanged
+            assert_eq!(order_processor.orders.len(), 1);
+        }
+
+        #[test]
+        fn process_order_succeeds_with_multiple_products() {
+            // Given
+            let inventory = create_test_inventory();
+            let mut order_processor = OrderProcessor::new(inventory);
+            let order = Order {
+                id: 1,
+                products: vec![(1, 3), (2, 2)],
+            };
+
+            // When
+            let result = order_processor.process_order(order);
+
+            // Then
+            assert!(result.is_ok());
+            assert_eq!(order_processor.inventory.get_quantity(1), Some(7));
+            assert_eq!(order_processor.inventory.get_quantity(2), Some(3));
+            assert_eq!(order_processor.orders.len(), 1);
+        }
+
+        #[test]
+        fn process_order_fails_if_any_product_has_insufficient_quantity() {
+            // Given
+            let inventory = create_test_inventory();
+            let mut order_processor = OrderProcessor::new(inventory);
+            let order = Order {
+                id: 1,
+                products: vec![(1, 5), (2, 6)], // Product 2 has insufficient quantity
+            };
+
+            // When
+            let result = order_processor.process_order(order);
+
+            // Then
+            assert!(result.is_err());
+            assert_eq!(
+                result.unwrap_err(),
+                "Insufficient stock for product 2".to_string()
+            );
+            assert_eq!(order_processor.inventory.get_quantity(1), Some(10)); // Inventory unchanged
+            assert_eq!(order_processor.inventory.get_quantity(2), Some(5)); // Inventory unchanged
+            assert_eq!(order_processor.orders.len(), 0);
+        }
+    }
 }
 
 fn main() {
