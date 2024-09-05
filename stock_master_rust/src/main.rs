@@ -527,4 +527,108 @@ mod tests {
             assert_eq!(inventory.get_quantity(product2.id), Some(3));
         }
     }
+
+    mod inventory_get_product_tests {
+        use super::*;
+
+        fn create_test_inventory() -> Inventory {
+            let mut inventory = Inventory::new();
+            inventory.add_product(
+                Product {
+                    id: 1,
+                    name: "Test Product".to_string(),
+                    price: 10.0,
+                },
+                5,
+            );
+            inventory
+        }
+
+        #[test]
+        fn get_product_returns_some_for_existing_product() {
+            // Given
+            let inventory = create_test_inventory();
+            let product_id = 1;
+
+            // When
+            let result = inventory.get_product(product_id);
+
+            // Then
+            assert!(result.is_some());
+            assert_eq!(result.unwrap().id, product_id);
+            assert_eq!(result.unwrap().name, "Test Product");
+            assert_eq!(result.unwrap().price, 10.0);
+        }
+
+        #[test]
+        fn get_product_returns_none_for_non_existent_product() {
+            // Given
+            let inventory = create_test_inventory();
+            let non_existent_product_id = 999;
+
+            // When
+            let result = inventory.get_product(non_existent_product_id);
+
+            // Then
+            assert!(result.is_none());
+        }
+
+        #[test]
+        fn get_product_returns_correct_product_for_multiple_products() {
+            // Given
+            let mut inventory = create_test_inventory();
+            inventory.add_product(
+                Product {
+                    id: 2,
+                    name: "Another Product".to_string(),
+                    price: 20.0,
+                },
+                3,
+            );
+
+            // When
+            let result = inventory.get_product(2);
+
+            // Then
+            assert!(result.is_some());
+            assert_eq!(result.unwrap().id, 2);
+            assert_eq!(result.unwrap().name, "Another Product");
+            assert_eq!(result.unwrap().price, 20.0);
+        }
+
+        #[test]
+        fn get_product_returns_product_without_affecting_quantity() {
+            // Given
+            let inventory = create_test_inventory();
+            let product_id = 1;
+            let initial_quantity = inventory.get_quantity(product_id).unwrap();
+
+            // When
+            let _ = inventory.get_product(product_id);
+
+            // Then
+            assert_eq!(
+                inventory.get_quantity(product_id).unwrap(),
+                initial_quantity
+            );
+        }
+
+        #[test]
+        fn get_product_returns_same_reference_for_multiple_calls() {
+            // Given
+            let inventory = create_test_inventory();
+            let product_id = 1;
+
+            // When
+            let result1 = inventory.get_product(product_id);
+            let result2 = inventory.get_product(product_id);
+
+            // Then
+            assert!(result1.is_some() && result2.is_some());
+            assert_eq!(
+                result1.unwrap() as *const Product,
+                result2.unwrap() as *const Product
+            );
+        }
+    }
 }
