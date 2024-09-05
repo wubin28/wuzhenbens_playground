@@ -111,6 +111,106 @@ impl OrderProcessor {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod inventory_tests {
+        use super::*;
+
+        fn create_test_inventory() -> Inventory {
+            let mut inventory = Inventory::new();
+            inventory.add_product(
+                Product {
+                    id: 1,
+                    name: "Test Product".to_string(),
+                    price: 10.0,
+                },
+                5,
+            );
+            inventory
+        }
+
+        #[test]
+        fn update_quantity_succeeds_for_existing_product() {
+            // Given
+            let mut inventory = create_test_inventory();
+            let product_id = 1;
+            let new_quantity = 10;
+
+            // When
+            let result = inventory.update_quantity(product_id, new_quantity);
+
+            // Then
+            assert!(result.is_ok());
+            assert_eq!(inventory.get_quantity(product_id), Some(new_quantity));
+        }
+
+        #[test]
+        fn update_quantity_fails_for_non_existent_product() {
+            // Given
+            let mut inventory = create_test_inventory();
+            let non_existent_product_id = 999;
+            let new_quantity = 10;
+
+            // When
+            let result = inventory.update_quantity(non_existent_product_id, new_quantity);
+
+            // Then
+            assert!(result.is_err());
+            assert_eq!(
+                result.unwrap_err(),
+                format!("Product with id {} not found", non_existent_product_id)
+            );
+        }
+
+        #[test]
+        fn update_quantity_to_zero_is_allowed() {
+            // Given
+            let mut inventory = create_test_inventory();
+            let product_id = 1;
+            let new_quantity = 0;
+
+            // When
+            let result = inventory.update_quantity(product_id, new_quantity);
+
+            // Then
+            assert!(result.is_ok());
+            assert_eq!(inventory.get_quantity(product_id), Some(new_quantity));
+        }
+
+        #[test]
+        fn update_quantity_with_same_value_succeeds() {
+            // Given
+            let mut inventory = create_test_inventory();
+            let product_id = 1;
+            let original_quantity = inventory.get_quantity(product_id).unwrap();
+
+            // When
+            let result = inventory.update_quantity(product_id, original_quantity);
+
+            // Then
+            assert!(result.is_ok());
+            assert_eq!(inventory.get_quantity(product_id), Some(original_quantity));
+        }
+
+        #[test]
+        fn update_quantity_with_max_u32_value_succeeds() {
+            // Given
+            let mut inventory = create_test_inventory();
+            let product_id = 1;
+            let new_quantity = u32::MAX;
+
+            // When
+            let result = inventory.update_quantity(product_id, new_quantity);
+
+            // Then
+            assert!(result.is_ok());
+            assert_eq!(inventory.get_quantity(product_id), Some(new_quantity));
+        }
+    }
+}
+
 fn main() {
     let mut inventory = Inventory::new();
 
