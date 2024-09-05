@@ -49,6 +49,25 @@ impl Inventory {
             .get(&product_id)
             .map(|(_, quantity)| *quantity)
     }
+
+    fn get_most_expensive_product(&self) -> Option<&Product> {
+        let mut max_price = 0.0;
+        let mut most_expensive = None;
+
+        for (_, (product, _)) in &self.products {
+            if product.price > max_price {
+                max_price = product.price;
+                let temp_product = Product {
+                    id: product.id,
+                    name: product.name.clone(),
+                    price: product.price,
+                };
+                most_expensive = Some(&temp_product);
+            }
+        }
+
+        most_expensive
+    }
 }
 
 struct OrderProcessor {
@@ -153,6 +172,13 @@ fn main() {
     println!("\nFinal inventory:");
     for (id, (product, quantity)) in &order_processor.inventory.products {
         println!("Product: {:?}, Quantity: {}", product, quantity);
+    }
+
+    println!("\nTrying to get the most expensive product:");
+    if let Some(expensive_product) = order_processor.inventory.get_most_expensive_product() {
+        println!("Most expensive product: {:?}", expensive_product);
+    } else {
+        println!("No products in inventory");
     }
 }
 // Output:
