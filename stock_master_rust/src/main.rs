@@ -631,4 +631,109 @@ mod tests {
             );
         }
     }
+
+    mod inventory_get_quantity_tests {
+        use super::*;
+
+        fn create_test_inventory() -> Inventory {
+            let mut inventory = Inventory::new();
+            inventory.add_product(
+                Product {
+                    id: 1,
+                    name: "Test Product".to_string(),
+                    price: 10.0,
+                },
+                5,
+            );
+            inventory
+        }
+
+        #[test]
+        fn get_quantity_returns_some_for_existing_product() {
+            // Given
+            let inventory = create_test_inventory();
+            let product_id = 1;
+
+            // When
+            let result = inventory.get_quantity(product_id);
+
+            // Then
+            assert_eq!(result, Some(5));
+        }
+
+        #[test]
+        fn get_quantity_returns_none_for_non_existent_product() {
+            // Given
+            let inventory = create_test_inventory();
+            let non_existent_product_id = 999;
+
+            // When
+            let result = inventory.get_quantity(non_existent_product_id);
+
+            // Then
+            assert_eq!(result, None);
+        }
+
+        #[test]
+        fn get_quantity_returns_correct_quantity_for_multiple_products() {
+            // Given
+            let mut inventory = create_test_inventory();
+            inventory.add_product(
+                Product {
+                    id: 2,
+                    name: "Another Product".to_string(),
+                    price: 20.0,
+                },
+                3,
+            );
+
+            // When
+            let result1 = inventory.get_quantity(1);
+            let result2 = inventory.get_quantity(2);
+
+            // Then
+            assert_eq!(result1, Some(5));
+            assert_eq!(result2, Some(3));
+        }
+
+        #[test]
+        fn get_quantity_returns_zero_for_product_with_zero_quantity() {
+            // Given
+            let mut inventory = create_test_inventory();
+            inventory.update_quantity(1, 0).unwrap();
+
+            // When
+            let result = inventory.get_quantity(1);
+
+            // Then
+            assert_eq!(result, Some(0));
+        }
+
+        #[test]
+        fn get_quantity_returns_max_value_for_product_with_max_quantity() {
+            // Given
+            let mut inventory = create_test_inventory();
+            inventory.update_quantity(1, u32::MAX).unwrap();
+
+            // When
+            let result = inventory.get_quantity(1);
+
+            // Then
+            assert_eq!(result, Some(u32::MAX));
+        }
+
+        #[test]
+        fn get_quantity_is_consistent_after_multiple_calls() {
+            // Given
+            let inventory = create_test_inventory();
+            let product_id = 1;
+
+            // When
+            let result1 = inventory.get_quantity(product_id);
+            let result2 = inventory.get_quantity(product_id);
+
+            // Then
+            assert_eq!(result1, result2);
+        }
+    }
 }
