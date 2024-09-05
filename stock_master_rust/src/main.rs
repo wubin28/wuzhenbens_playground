@@ -73,16 +73,16 @@ impl Inventory {
             special_feature,
         };
 
-        // 处理 special_product，这里会发生所有权转移
-        self.process_special_product(special_product);
+        // 修改：传递引用而不是所有权
+        self.process_special_product(&special_product);
 
-        // 错误：尝试使用已经失去所有权的 special_product
+        // 现在可以使用 special_product，因为我们只传递了它的引用
         println!("Processed special product: {:?}", special_product);
 
         Ok(())
     }
 
-    fn process_special_product(&mut self, product: SpecialProduct) {
+    fn process_special_product(&mut self, product: &SpecialProduct) {
         println!(
             "Processing special product: {} with feature: {}",
             product.name, product.special_feature
