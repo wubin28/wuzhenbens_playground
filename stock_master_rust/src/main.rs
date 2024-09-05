@@ -177,7 +177,7 @@ fn main() {
 mod tests {
     use super::*;
 
-    mod inventory_tests {
+    mod inventory_update_quantity_tests {
         use super::*;
 
         fn create_test_inventory() -> Inventory {
@@ -422,6 +422,109 @@ mod tests {
             assert_eq!(order_processor.inventory.get_quantity(1), Some(10)); // Inventory unchanged
             assert_eq!(order_processor.inventory.get_quantity(2), Some(5)); // Inventory unchanged
             assert_eq!(order_processor.orders.len(), 0);
+        }
+    }
+
+    mod inventory_add_product_tests {
+        use super::*;
+
+        #[test]
+        fn add_new_product_increases_inventory_size() {
+            // Given
+            let mut inventory = Inventory::new();
+            let initial_size = inventory.products.len();
+            let new_product = Product {
+                id: 1,
+                name: "Test Product".to_string(),
+                price: 10.0,
+            };
+
+            // When
+            inventory.add_product(new_product.clone(), 5);
+
+            // Then
+            assert_eq!(inventory.products.len(), initial_size + 1);
+            assert!(inventory.products.contains_key(&new_product.id));
+        }
+
+        #[test]
+        fn add_existing_product_updates_quantity() {
+            // Given
+            let mut inventory = Inventory::new();
+            let product = Product {
+                id: 1,
+                name: "Test Product".to_string(),
+                price: 10.0,
+            };
+            inventory.add_product(product.clone(), 5);
+
+            // When
+            inventory.add_product(product.clone(), 3);
+
+            // Then
+            assert_eq!(inventory.products.len(), 1);
+            assert_eq!(inventory.get_quantity(product.id), Some(3));
+        }
+
+        #[test]
+        fn add_product_with_zero_quantity() {
+            // Given
+            let mut inventory = Inventory::new();
+            let product = Product {
+                id: 1,
+                name: "Test Product".to_string(),
+                price: 10.0,
+            };
+
+            // When
+            inventory.add_product(product.clone(), 0);
+
+            // Then
+            assert!(inventory.products.contains_key(&product.id));
+            assert_eq!(inventory.get_quantity(product.id), Some(0));
+        }
+
+        #[test]
+        fn add_product_with_max_quantity() {
+            // Given
+            let mut inventory = Inventory::new();
+            let product = Product {
+                id: 1,
+                name: "Test Product".to_string(),
+                price: 10.0,
+            };
+
+            // When
+            inventory.add_product(product.clone(), u32::MAX);
+
+            // Then
+            assert!(inventory.products.contains_key(&product.id));
+            assert_eq!(inventory.get_quantity(product.id), Some(u32::MAX));
+        }
+
+        #[test]
+        fn add_multiple_products_with_different_ids() {
+            // Given
+            let mut inventory = Inventory::new();
+            let product1 = Product {
+                id: 1,
+                name: "Product 1".to_string(),
+                price: 10.0,
+            };
+            let product2 = Product {
+                id: 2,
+                name: "Product 2".to_string(),
+                price: 20.0,
+            };
+
+            // When
+            inventory.add_product(product1.clone(), 5);
+            inventory.add_product(product2.clone(), 3);
+
+            // Then
+            assert_eq!(inventory.products.len(), 2);
+            assert_eq!(inventory.get_quantity(product1.id), Some(5));
+            assert_eq!(inventory.get_quantity(product2.id), Some(3));
         }
     }
 }
