@@ -20,6 +20,14 @@ struct Order {
     products: Vec<(u32, u32)>,
 }
 
+#[derive(Debug)]
+struct SpecialProduct {
+    id: u32,
+    name: String,
+    price: f64,
+    special_feature: String,
+}
+
 impl Inventory {
     fn new() -> Self {
         Inventory {
@@ -48,6 +56,38 @@ impl Inventory {
         self.products
             .get(&product_id)
             .map(|(_, quantity)| *quantity)
+    }
+
+    fn create_and_process_special_product(
+        &mut self,
+        id: u32,
+        name: String,
+        price: f64,
+        special_feature: String,
+    ) -> Result<(), String> {
+        // 创建 SpecialProduct
+        let special_product = SpecialProduct {
+            id,
+            name,
+            price,
+            special_feature,
+        };
+
+        // 处理 special_product，这里会发生所有权转移
+        self.process_special_product(special_product);
+
+        // 错误：尝试使用已经失去所有权的 special_product
+        println!("Processed special product: {:?}", special_product);
+
+        Ok(())
+    }
+
+    fn process_special_product(&mut self, product: SpecialProduct) {
+        println!(
+            "Processing special product: {} with feature: {}",
+            product.name, product.special_feature
+        );
+        // 这里可以添加更多处理逻辑
     }
 }
 
@@ -115,6 +155,17 @@ fn main() {
         },
         15,
     );
+
+    // 尝试创建和处理特殊产品
+    match inventory.create_and_process_special_product(
+        10,
+        "Super Gadget".to_string(),
+        299.99,
+        "AI-powered".to_string(),
+    ) {
+        Ok(()) => println!("Special product created and processed successfully"),
+        Err(e) => println!("Error: {}", e),
+    }
 
     println!("Initial inventory:");
     for (id, (product, quantity)) in &inventory.products {
