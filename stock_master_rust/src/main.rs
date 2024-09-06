@@ -85,75 +85,54 @@ impl OrderProcessor {
         self.orders.push(order);
         Ok(())
     }
+
+    fn get_product_order_history<'a>(&'a self, product_id: u32) -> Vec<&'a Order> {
+        self.orders
+            .iter()
+            .filter(|order| order.products.iter().any(|(id, _)| *id == product_id))
+            .collect()
+    }
+}
+
+fn print_order_history(history: &[&Order]) {
+    for order in history {
+        println!("Order ID: {}", order.id);
+        for (product_id, quantity) in &order.products {
+            println!("  Product ID: {}, Quantity: {}", product_id, quantity);
+        }
+    }
 }
 
 fn main() {
-    let mut inventory = Inventory::new();
+    let laptop_history;
+    {
+        let mut inventory = Inventory::new();
 
-    // 添加产品到库存
-    inventory.add_product(
-        Product {
+        // 添加产品到库存
+        inventory.add_product(
+            Product {
+                id: 1,
+                name: "Laptop".to_string(),
+                price: 999.99,
+            },
+            10,
+        );
+
+        let mut order_processor = OrderProcessor::new(inventory);
+
+        // 创建并处理订单
+        let order1 = Order {
             id: 1,
-            name: "Laptop".to_string(),
-            price: 999.99,
-        },
-        10,
-    );
-    inventory.add_product(
-        Product {
-            id: 2,
-            name: "Smartphone".to_string(),
-            price: 499.99,
-        },
-        20,
-    );
-    inventory.add_product(
-        Product {
-            id: 3,
-            name: "Tablet".to_string(),
-            price: 299.99,
-        },
-        15,
-    );
+            products: vec![(1, 2)],
+        };
+        order_processor.process_order(order1).unwrap();
 
-    println!("Initial inventory:");
-    for (id, (product, quantity)) in &inventory.products {
-        println!("Product: {:?}, Quantity: {}", product, quantity);
-    }
+        // 尝试获取产品订单历史并存储在外部变量中
+        laptop_history = order_processor.get_product_order_history(1);
+    } // order_processor 的生命周期在这里结束
 
-    let mut order_processor = OrderProcessor::new(inventory);
-
-    // 处理订单
-    let order1 = Order {
-        id: 1,
-        products: vec![(1, 2), (2, 3)],
-    };
-
-    match order_processor.process_order(order1) {
-        Ok(()) => println!("Order 1 processed successfully"),
-        Err(e) => println!("Failed to process order 1: {}", e),
-    }
-
-    println!("\nInventory after processing order 1:");
-    for (id, (product, quantity)) in &order_processor.inventory.products {
-        println!("Product: {:?}, Quantity: {}", product, quantity);
-    }
-
-    // 尝试处理一个库存不足的订单
-    let order2 = Order {
-        id: 2,
-        products: vec![(3, 20)],
-    };
-
-    match order_processor.process_order(order2) {
-        Ok(()) => println!("Order 2 processed successfully"),
-        Err(e) => println!("Failed to process order 2: {}", e),
-    }
-
-    println!("\nFinal inventory:");
-    for (id, (product, quantity)) in &order_processor.inventory.products {
-        println!("Product: {:?}, Quantity: {}", product, quantity);
-    }
+    // 尝试使用 laptop_history，这里会出现编译错误
+    print_order_history(&laptop_history);
 }
 // Output:
 // Initial inventory:
