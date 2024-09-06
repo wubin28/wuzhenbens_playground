@@ -16,10 +16,16 @@ classDiagram
         -get_product(&self, product_id: u32) Option《&Product》
         -get_quantity(&self, product_id: u32) Option《u32》
     }
+
+    class OrderItem {
+        -product_id: u32
+        -quantity: u32
+    }
     
     class Order {
         -id: u32
-        -products: Vec《（u32, u32）》
+        -items: Vec《OrderItem》
+        -new(id: u32, items: Vec《OrderItem》) Order
     }
     
     class OrderProcessor {
@@ -30,7 +36,8 @@ classDiagram
     }
     
     Inventory "1" --> "*" Product : contains
-    OrderProcessor "1" --> "1" Inventory : manages
-    OrderProcessor "1" --> "*" Order : processes
-    Order "1" --> "*" Product : contains
+    OrderProcessor "1" --> "1" Inventory : contains
+    OrderProcessor "1" --> "*" Order : contains
+    Order "1" --> "*" OrderItem : contains
+    OrderItem "1" --> "1" Product : references
 ```
