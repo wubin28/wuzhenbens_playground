@@ -14,10 +14,15 @@ struct Inventory {
 }
 
 #[derive(Debug)]
+struct OrderItem {
+    product_id: u32,
+    quantity: u32,
+}
+
+#[derive(Debug)]
 struct Order {
     id: u32,
-    // <(product_id, quantity)>
-    products: Vec<(u32, u32)>,
+    items: Vec<OrderItem>,
 }
 
 impl Inventory {
@@ -51,6 +56,12 @@ impl Inventory {
     }
 }
 
+impl Order {
+    fn new(id: u32, items: Vec<OrderItem>) -> Self {
+        Order { id, items }
+    }
+}
+
 struct OrderProcessor {
     inventory: Inventory,
     orders: Vec<Order>,
@@ -65,21 +76,24 @@ impl OrderProcessor {
     }
 
     fn process_order(&mut self, order: Order) -> Result<(), String> {
-        for (product_id, quantity) in &order.products {
+        for item in &order.items {
             let current_quantity = self
                 .inventory
-                .get_quantity(*product_id)
-                .ok_or_else(|| format!("Product with id {} not found", product_id))?;
+                .get_quantity(item.product_id)
+                .ok_or_else(|| format!("Product with id {} not found", item.product_id))?;
 
-            if current_quantity < *quantity {
-                return Err(format!("Insufficient stock for product {}", product_id));
+            if current_quantity < item.quantity {
+                return Err(format!(
+                    "Insufficient stock for product {}",
+                    item.product_id
+                ));
             }
         }
 
-        for (product_id, quantity) in &order.products {
-            let current_quantity = self.inventory.get_quantity(*product_id).unwrap();
+        for item in &order.items {
+            let current_quantity = self.inventory.get_quantity(item.product_id).unwrap();
             self.inventory
-                .update_quantity(*product_id, current_quantity - quantity)?;
+                .update_quantity(item.product_id, current_quantity - item.quantity)?;
         }
 
         self.orders.push(order);
@@ -124,10 +138,19 @@ fn main() {
     let mut order_processor = OrderProcessor::new(inventory);
 
     // 处理订单
-    let order1 = Order {
-        id: 1,
-        products: vec![(1, 2), (2, 3)],
-    };
+    let order1 = Order::new(
+        1,
+        vec![
+            OrderItem {
+                product_id: 1,
+                quantity: 2,
+            },
+            OrderItem {
+                product_id: 2,
+                quantity: 3,
+            },
+        ],
+    );
 
     match order_processor.process_order(order1) {
         Ok(()) => println!("Order 1 processed successfully"),
@@ -140,10 +163,13 @@ fn main() {
     }
 
     // 尝试处理一个库存不足的订单
-    let order2 = Order {
-        id: 2,
-        products: vec![(3, 20)],
-    };
+    let order2 = Order::new(
+        2,
+        vec![OrderItem {
+            product_id: 3,
+            quantity: 20,
+        }],
+    );
 
     match order_processor.process_order(order2) {
         Ok(()) => println!("Order 2 processed successfully"),
@@ -301,10 +327,19 @@ mod tests {
             // Given
             let inventory = create_test_inventory();
             let mut order_processor = OrderProcessor::new(inventory);
-            let order = Order {
-                id: 1,
-                products: vec![(1, 5), (2, 2)],
-            };
+            let order = Order::new(
+                1,
+                vec![
+                    OrderItem {
+                        product_id: 1,
+                        quantity: 5,
+                    },
+                    OrderItem {
+                        product_id: 2,
+                        quantity: 2,
+                    },
+                ],
+            );
 
             // When
             let result = order_processor.process_order(order);
@@ -321,10 +356,15 @@ mod tests {
             // Given
             let inventory = create_test_inventory();
             let mut order_processor = OrderProcessor::new(inventory);
-            let order = Order {
-                id: 1,
-                products: vec![(1, 11)], // Requesting more than available
-            };
+            let order = Order::new(
+                1,
+                vec![
+                    OrderItem {
+                        product_id: 1,
+                        quantity: 11,
+                    }, // Requesting more than available
+                ],
+            );
 
             // When
             let result = order_processor.process_order(order);
@@ -344,10 +384,15 @@ mod tests {
             // Given
             let inventory = create_test_inventory();
             let mut order_processor = OrderProcessor::new(inventory);
-            let order = Order {
-                id: 1,
-                products: vec![(3, 1)], // Product 3 doesn't exist
-            };
+            let order = Order::new(
+                1,
+                vec![
+                    OrderItem {
+                        product_id: 3,
+                        quantity: 1,
+                    }, // Product 3 doesn't exist
+                ],
+            );
 
             // When
             let result = order_processor.process_order(order);
@@ -366,10 +411,13 @@ mod tests {
             // Given
             let inventory = create_test_inventory();
             let mut order_processor = OrderProcessor::new(inventory);
-            let order = Order {
-                id: 1,
-                products: vec![(1, 0)],
-            };
+            let order = Order::new(
+                1,
+                vec![OrderItem {
+                    product_id: 1,
+                    quantity: 0,
+                }],
+            );
 
             // When
             let result = order_processor.process_order(order);
@@ -385,10 +433,19 @@ mod tests {
             // Given
             let inventory = create_test_inventory();
             let mut order_processor = OrderProcessor::new(inventory);
-            let order = Order {
-                id: 1,
-                products: vec![(1, 3), (2, 2)],
-            };
+            let order = Order::new(
+                1,
+                vec![
+                    OrderItem {
+                        product_id: 1,
+                        quantity: 3,
+                    },
+                    OrderItem {
+                        product_id: 2,
+                        quantity: 2,
+                    },
+                ],
+            );
 
             // When
             let result = order_processor.process_order(order);
@@ -405,10 +462,19 @@ mod tests {
             // Given
             let inventory = create_test_inventory();
             let mut order_processor = OrderProcessor::new(inventory);
-            let order = Order {
-                id: 1,
-                products: vec![(1, 5), (2, 6)], // Product 2 has insufficient quantity
-            };
+            let order = Order::new(
+                1,
+                vec![
+                    OrderItem {
+                        product_id: 1,
+                        quantity: 5,
+                    },
+                    OrderItem {
+                        product_id: 2,
+                        quantity: 6,
+                    }, // Product 2 has insufficient quantity
+                ],
+            );
 
             // When
             let result = order_processor.process_order(order);
