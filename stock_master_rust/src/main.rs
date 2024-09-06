@@ -13,7 +13,7 @@ struct Inventory {
     products: HashMap<u32, (Product, u32)>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Order {
     id: u32,
     // <(product_id, quantity)>
@@ -86,15 +86,16 @@ impl OrderProcessor {
         Ok(())
     }
 
-    fn get_product_order_history<'a>(&'a self, product_id: u32) -> Vec<&'a Order> {
+    fn get_product_order_history(&self, product_id: u32) -> Vec<Order> {
         self.orders
             .iter()
             .filter(|order| order.products.iter().any(|(id, _)| *id == product_id))
+            .cloned()
             .collect()
     }
 }
 
-fn print_order_history(history: &[&Order]) {
+fn print_order_history(history: &[Order]) {
     for order in history {
         println!("Order ID: {}", order.id);
         for (product_id, quantity) in &order.products {
@@ -129,28 +130,14 @@ fn main() {
 
         // 尝试获取产品订单历史并存储在外部变量中
         laptop_history = order_processor.get_product_order_history(1);
-    } // order_processor 的生命周期在这里结束
+    } // order_processor 的生存期在这里结束
 
     // 尝试使用 laptop_history，这里会出现编译错误
     print_order_history(&laptop_history);
 }
 // Output:
-// Initial inventory:
-// Product: Product { id: 2, name: "Smartphone", price: 499.99 }, Quantity: 20
-// Product: Product { id: 3, name: "Tablet", price: 299.99 }, Quantity: 15
-// Product: Product { id: 1, name: "Laptop", price: 999.99 }, Quantity: 10
-// Order 1 processed successfully
-
-// Inventory after processing order 1:
-// Product: Product { id: 2, name: "Smartphone", price: 499.99 }, Quantity: 17
-// Product: Product { id: 3, name: "Tablet", price: 299.99 }, Quantity: 15
-// Product: Product { id: 1, name: "Laptop", price: 999.99 }, Quantity: 8
-// Failed to process order 2: Insufficient stock for product 3
-
-// Final inventory:
-// Product: Product { id: 2, name: "Smartphone", price: 499.99 }, Quantity: 17
-// Product: Product { id: 3, name: "Tablet", price: 299.99 }, Quantity: 15
-// Product: Product { id: 1, name: "Laptop", price: 999.99 }, Quantity: 8
+// Order ID: 1
+//   Product ID: 1, Quantity: 2
 
 #[cfg(test)]
 mod tests {
