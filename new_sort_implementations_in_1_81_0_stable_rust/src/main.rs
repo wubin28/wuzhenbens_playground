@@ -33,5 +33,6 @@ fn main() {
     println!("After sorting: {:?}", vec);
 }
 // Output:
+// rustup run 1.81.0 cargo run -v
 // Before sorting: [BadOrd(3), BadOrd(2), BadOrd(4), BadOrd(1)]
 // After sorting: [BadOrd(1), BadOrd(2), BadOrd(3), BadOrd(4)]
