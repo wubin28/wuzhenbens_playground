@@ -1,0 +1,6 @@
+[package]
+name = "new_sort_implementations_in_1_81_0_stable_rust"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
