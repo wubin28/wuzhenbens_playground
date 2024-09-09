@@ -1,7 +1,15 @@
 use std::cmp::Ordering;
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug)]
 struct BadOrd(i32);
+
+impl PartialEq for BadOrd {
+    fn eq(&self, other: &Self) -> bool {
+        self.0 == other.0
+    }
+}
+
+impl Eq for BadOrd {}
 
 impl PartialOrd for BadOrd {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
@@ -22,9 +30,9 @@ impl Ord for BadOrd {
 
 fn main() {
     let mut vec = vec![BadOrd(3), BadOrd(2), BadOrd(4), BadOrd(1)];
-    
+
     println!("Before sorting: {:?}", vec);
-    
+
     // This should panic in Rust 1.81.0
     vec.sort();
 
