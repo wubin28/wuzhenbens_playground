@@ -1,61 +1,65 @@
-use std::cmp::{Ord, Ordering, PartialOrd};
+use std::cmp::Ordering;
 
-#[derive(Debug, Eq, PartialEq)]
-struct BadlyOrdered(i32);
+#[derive(Debug)]
+struct BadOrd(i32);
 
-impl PartialOrd for BadlyOrdered {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
+impl PartialEq for BadOrd {
+    fn eq(&self, other: &Self) -> bool {
+        // Intentionally inconsistent equality
+        self.0 % 2 == other.0 % 2
     }
 }
 
-impl Ord for BadlyOrdered {
+impl Eq for BadOrd {}
+
+impl PartialOrd for BadOrd {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        // Violates consistency, transitivity, and duality
+        if self.0 % 2 == 0 && other.0 % 2 != 0 {
+            Some(Ordering::Less)
+        } else if self.0 % 2 != 0 && other.0 % 2 == 0 {
+            Some(Ordering::Greater)
+        } else if self.0 == other.0 {
+            Some(Ordering::Equal)
+        } else {
+            None
+        }
+    }
+}
+
+impl Ord for BadOrd {
     fn cmp(&self, other: &Self) -> Ordering {
-        // Violating transitivity:
-        // We want 1 < 2, 2 < 3, but 3 < 1
-        match (self.0, other.0) {
-            (1, 2) | (2, 3) => Ordering::Less,
-            (3, 1) => Ordering::Less,
-            (a, b) if a == b => Ordering::Equal,
-            _ => Ordering::Greater,
+        // Inconsistent with PartialOrd and violates total ordering
+        if self.0 < other.0 {
+            Ordering::Greater
+        } else if self.0 > other.0 {
+            Ordering::Less
+        } else {
+            Ordering::Equal
         }
     }
 }
 
 fn main() {
-    let a = BadlyOrdered(1);
-    let b = BadlyOrdered(2);
-    let c = BadlyOrdered(3);
+    let mut vec = vec![BadOrd(3), BadOrd(2), BadOrd(4), BadOrd(1)];
 
-    println!("Comparing individual pairs:");
-    println!("a < b: {:?}", a < b); // true
-    println!("b < c: {:?}", b < c); // true
-    println!("c < a: {:?}", c < a); // true
+    println!("Before sorting: {:?}", vec);
 
-    println!("\nThis violates transitivity!");
+    vec.sort(); // This will likely panic due to inconsistent ordering
 
-    let mut vec = vec![c, b, a];
-    println!("\nOriginal vector: {:?}", vec);
+    println!("After sorting: {:?}", vec);
 
-    println!("Attempting to sort...");
-    vec.sort();
-    println!("Sorted vector: {:?}", vec);
+    // These assertions will fail, demonstrating incorrect ordering
+    assert!(BadOrd(1) < BadOrd(2));
+    assert!(BadOrd(2) > BadOrd(1));
+    assert!(BadOrd(2) == BadOrd(2));
 
-    println!("\nChecking if the vector is actually sorted:");
-    println!("Is sorted: {:?}", vec.windows(2).all(|w| w[0] <= w[1]));
+    println!("All assertions passed!");
 }
 // Output:
-// rustup run 1.81.0 cargo run -v
-// Comparing individual pairs:
-// a < b: true
-// b < c: true
-// c < a: true
-
-// This violates transitivity!
-
-// Original vector: [BadlyOrdered(3), BadlyOrdered(2), BadlyOrdered(1)]
-// Attempting to sort...
-// Sorted vector: [BadlyOrdered(2), BadlyOrdered(3), BadlyOrdered(1)]
-
-// Checking if the vector is actually sorted:
-// Is sorted: true
+// rustup run 1.81.0 cargo run
+// Before sorting: [BadOrd(3), BadOrd(2), BadOrd(4), BadOrd(1)]
+// After sorting: [BadOrd(2), BadOrd(4), BadOrd(3), BadOrd(1)]
+// thread 'main' panicked at src/main.rs:53:5:
+// assertion failed: BadOrd(1) < BadOrd(2)
+// note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
