@@ -1,44 +1,61 @@
-use std::cmp::Ordering;
+use std::cmp::{Ord, Ordering, PartialOrd};
 
-#[derive(Debug)]
-struct BadOrd(i32);
+#[derive(Debug, Eq, PartialEq)]
+struct BadlyOrdered(i32);
 
-impl PartialEq for BadOrd {
-    fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
-    }
-}
-
-impl Eq for BadOrd {}
-
-impl PartialOrd for BadOrd {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+impl PartialOrd for BadlyOrdered {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
-impl Ord for BadOrd {
+impl Ord for BadlyOrdered {
     fn cmp(&self, other: &Self) -> Ordering {
-        // Intentionally incorrect implementation that violates transitivity
-        if self.0 <= other.0 {
-            Ordering::Greater
-        } else {
-            Ordering::Less
+        // Violating transitivity:
+        // We want 1 < 2, 2 < 3, but 3 < 1
+        match (self.0, other.0) {
+            (1, 2) | (2, 3) => Ordering::Less,
+            (3, 1) => Ordering::Less,
+            (a, b) if a == b => Ordering::Equal,
+            _ => Ordering::Greater,
         }
     }
 }
 
 fn main() {
-    let mut vec = vec![BadOrd(3), BadOrd(2), BadOrd(4), BadOrd(1)];
+    let a = BadlyOrdered(1);
+    let b = BadlyOrdered(2);
+    let c = BadlyOrdered(3);
 
-    println!("Before sorting: {:?}", vec);
+    println!("Comparing individual pairs:");
+    println!("a < b: {:?}", a < b); // true
+    println!("b < c: {:?}", b < c); // true
+    println!("c < a: {:?}", c < a); // true
 
-    // This should panic in Rust 1.81.0
+    println!("\nThis violates transitivity!");
+
+    let mut vec = vec![c, b, a];
+    println!("\nOriginal vector: {:?}", vec);
+
+    println!("Attempting to sort...");
     vec.sort();
+    println!("Sorted vector: {:?}", vec);
 
-    println!("After sorting: {:?}", vec);
+    println!("\nChecking if the vector is actually sorted:");
+    println!("Is sorted: {:?}", vec.windows(2).all(|w| w[0] <= w[1]));
 }
 // Output:
 // rustup run 1.81.0 cargo run -v
-// Before sorting: [BadOrd(3), BadOrd(2), BadOrd(4), BadOrd(1)]
-// After sorting: [BadOrd(4), BadOrd(3), BadOrd(2), BadOrd(1)]
+// Comparing individual pairs:
+// a < b: true
+// b < c: true
+// c < a: true
+
+// This violates transitivity!
+
+// Original vector: [BadlyOrdered(3), BadlyOrdered(2), BadlyOrdered(1)]
+// Attempting to sort...
+// Sorted vector: [BadlyOrdered(2), BadlyOrdered(3), BadlyOrdered(1)]
+
+// Checking if the vector is actually sorted:
+// Is sorted: true
