@@ -1,25 +1,36 @@
 use std::cmp::Ordering;
 
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd)]
-struct GoodOrd(i32);
+#[derive(Debug, Eq, PartialEq)]
+struct BadOrd(i32);
+
+impl PartialOrd for BadOrd {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for BadOrd {
+    fn cmp(&self, other: &Self) -> Ordering {
+        // Intentionally incorrect implementation that violates transitivity
+        if self.0 <= other.0 {
+            Ordering::Greater
+        } else {
+            Ordering::Less
+        }
+    }
+}
 
 fn main() {
-    let mut vec = vec![GoodOrd(3), GoodOrd(2), GoodOrd(4), GoodOrd(1)];
-
+    let mut vec = vec![BadOrd(3), BadOrd(2), BadOrd(4), BadOrd(1)];
+    
     println!("Before sorting: {:?}", vec);
-
+    
+    // This should panic in Rust 1.81.0
     vec.sort();
 
     println!("After sorting: {:?}", vec);
-
-    // Demonstrating correct ordering
-    assert!(GoodOrd(1) < GoodOrd(2));
-    assert!(GoodOrd(2) > GoodOrd(1));
-    assert!(GoodOrd(2) == GoodOrd(2));
-
-    println!("All assertions passed!");
 }
 // Output:
-// Before sorting: [GoodOrd(3), GoodOrd(2), GoodOrd(4), GoodOrd(1)]
-// After sorting: [GoodOrd(1), GoodOrd(2), GoodOrd(3), GoodOrd(4)]
-// All assertions passed!
+// rustup run 1.81.0 cargo run -v
+// Before sorting: [BadOrd(3), BadOrd(2), BadOrd(4), BadOrd(1)]
+// After sorting: [BadOrd(4), BadOrd(3), BadOrd(2), BadOrd(1)]
